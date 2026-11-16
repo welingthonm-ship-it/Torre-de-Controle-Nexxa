@@ -1,0 +1,8 @@
+# Dados operacionais (não versionar)
+*.csv
+*.xlsx
+*.xls
+*.pdf
+dados/
+.DS_Store
+node_modules/

@@ -1,0 +1,37 @@
+# Torre de Controle – Transporte (Nexxa)
+
+Portal de monitoramento de transporte: resumo do dia, rotas, entregas pendentes, ocorrências, rastreio de cliente e de carga, modo TV, variável de transportadoras e frota, e controle de acesso por perfil.
+
+**Portal publicado (link fixo, sempre na versão mais recente):**
+https://claude.ai/code/artifact/fa947590-1bf6-4bb5-abc9-664c8fdc6732
+
+> Este repositório é uma cópia do código-fonte. Ele **não** atualiza o portal automaticamente: o portal roda a partir dos arquivos guardados no próprio artifact. Depois de mudanças no portal, os arquivos precisam ser enviados de novo para cá.
+
+## Estrutura
+
+| Pasta / arquivo | Conteúdo |
+|---|---|
+| `portal/index.html` | Página principal: abas, estilos, núcleo `TC` (prazos D+N, SLA, previsão de entrega), rastreio, modo TV, mapa |
+| `portal/resumo.js` | Aba Resumo (filtros por data da carga e data da entrega, progresso por data) |
+| `portal/carga.js` | Rastreio – Consulta carga (linha do tempo + paradas) |
+| `portal/pendentes.js` | Entregas pendentes (hoje / atrasadas / próximos dias, busca por motorista/placa) |
+| `portal/variavel.js` / `variavel.css` | Variável de transportadoras (% até 1,5% por motorista) e frota (R$ 1.000, produtividade + nível de serviço), exportação Excel |
+| `portal/pdfregras.js` | Geração do PDF de regras com marca d'água Nexxa |
+| `portal/usuarios.js` / `usuarios.css` | Login por perfil, senhas (SHA-256 com sal) e restrição de abas |
+| `portal/tv.css` | Estilos do modo TV |
+| `portal/brasil.js` | Contorno do mapa do Brasil |
+| `portal/atualizar.js` | Leitura das planilhas e cálculo dos dados (gerado a partir de `atualizar-fonte/`) |
+| `atualizar-fonte/` | Fontes do `atualizar.js`: `xlsread.js` (leitor XLSX), `transform.js` (regras de SLA/On Time/OTIF, baixa manual), `ui.js` |
+
+## Regras principais
+
+- **SLA (janela):** SIM quando a chegada ocorre até 60 min após o fim da janela no dia da chegada; chegada antes do dia previsto conta como SIM.
+- **On Time:** mesma lógica, usando o início da janela + 60 min.
+- **Saída real:** início da rota + 30 min. A previsão é recalculada a cada minuto a partir da última parada atendida.
+
+## Dados
+
+Os dados (entregas, clientes, motoristas, perfis e senhas) ficam no banco do portal e **não** estão neste repositório. Não versione planilhas ou exportações com dados de clientes ou motoristas.
+
+---
+W ARRAES – Gerência Transporte · CNPJ 70.070.143/0001-55
