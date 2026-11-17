@@ -29,6 +29,18 @@ https://claude.ai/code/artifact/fa947590-1bf6-4bb5-abc9-664c8fdc6732
 - **On Time:** mesma lógica, usando o início da janela + 60 min.
 - **Saída real:** início da rota + 30 min. A previsão é recalculada a cada minuto a partir da última parada atendida.
 
+## Perfis de acesso
+
+| Perfil | Abas |
+|---|---|
+| Administrador | Todas |
+| Operação | Todas, exceto Atualizar dados e Variável |
+| Customer Service | Customer Service - Alertas, Rastreio - Consulta cliente |
+| Monitoramento | Modo TV, Resumo do dia, Rotas do dia, Entregas pendentes, Prazos D+N, Mapa, Ocorrências do dia, Rastreio (cliente e carga) |
+| Fechamento de Frete | Ocorrências do dia, Ranking de transportadoras e de motoristas, Variável (transportadoras e frota), Rastreio - Consulta carga, Histórico |
+
+Referência em `config/perfis.json` (sem senhas). A configuração ativa é editada na tela Usuários do portal.
+
 ## Dados
 
 Os dados (entregas, clientes, motoristas, perfis e senhas) ficam no banco do portal e **não** estão neste repositório. Não versione planilhas ou exportações com dados de clientes ou motoristas.
