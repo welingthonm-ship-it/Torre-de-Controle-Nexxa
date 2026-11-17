@@ -876,12 +876,12 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 <th class='n'>Entregas</th>
 <th class='n'>Viagens</th>
 <th class='n'>% Concluídas</th>
+<th>Aderência app</th>
 <th>SLA janela</th>
+<th class='n'>% ocorr.</th>
 <th>On Time</th>
 <th>OTIF</th>
-<th>Aderência app</th>
 <th class='n'>Ocorrências</th>
-<th class='n'>% ocorr.</th>
 <th class='n'>Falta</th>
 <th class='n'>Dev. total</th>
 <th class='n'>Avaria</th>
@@ -1085,12 +1085,12 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 <th class='n'>Entregas</th>
 <th class='n'>Viagens</th>
 <th class='n'>% Concluídas</th>
+<th>Aderência app</th>
 <th>SLA janela</th>
+<th class='n'>% ocorr.</th>
 <th>On Time</th>
 <th>OTIF</th>
-<th>Aderência app</th>
 <th class='n'>Ocorrências</th>
-<th class='n'>% ocorr.</th>
 <th class='n'>Falta</th>
 <th class='n'>Dev. total</th>
 <th class='n'>Avaria</th>
@@ -2144,9 +2144,9 @@ const pos = td(null, 'n nx-pos'); const pb = document.createElement('b'); if (ix
 td(id === 'motoristas_dia' ? r.motorista : r.transportadora);
 st.cols.forEach((c) => td(r[c]));
 td(TC.fmt(r.entregas, 'int'), 'n'); td(TC.fmt(r.viagens, 'int'), 'n'); td(TC.fmt(r.conc, 'pct'), 'n');
-td(null).append(bar(r.sla, TC.pal[0])); td(null).append(bar(r.ontime, TC.pal[2])); td(null).append(bar(r.otif, TC.pal[3])); td(null).append(bar(r.app, '#7A5AF8'));
+td(null).append(bar(r.app, '#7A5AF8')); td(null).append(bar(r.sla, TC.pal[0])); td(TC.fmt(r.oc, 'pct'), 'n');
+td(null).append(bar(r.ontime, TC.pal[2])); td(null).append(bar(r.otif, TC.pal[3]));
 const oq = td(TC.fmt(r.ocorrencias, 'int'), 'n nx-ocq'); if (+r.ocorrencias > 0) oq.classList.add('has');
-td(TC.fmt(r.oc, 'pct'), 'n');
 ['oc_falta', 'oc_devolucao', 'oc_avaria', 'oc_qualidade'].forEach((f) => { const c = td(+r[f] ? TC.fmt(r[f], 'int') : '–', 'n nx-octp'); if (+r[f]) c.classList.add('has'); });
 return tr;
 }));
