@@ -1055,6 +1055,7 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 <option value='ocq'>Mais ocorrências (quantidade)</option>
 <option value='ent'>Volume de entregas</option>
 </select></label>
+<label class='rk-transp-l'>Transportadora <select class='dash-select rk-transp' data-draw='rkTransp' aria-label='Filtrar por transportadora'></select></label>
 <label>Mínimo de entregas no período <select class='dash-select rk-min' aria-label='Mínimo de entregas no período'>
 <option value='1'>Todas</option>
 <option value='10' selected>10</option>
@@ -1263,12 +1264,12 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 </section>
 <section class='tc-sec' id='ciclo-pedido'>
 <h2>Ciclo do pedido</h2>
-<p class='tc-note'>Rota <b data-draw='ent' data-source='entregas_cliente' data-field='rota'>—</b> de <b data-draw='ent' data-source='entregas_cliente' data-field='data' data-fmt='d'>—</b> · Entrega planejada para <b data-draw='entPlan' data-source='entregas_cliente'>—</b> · <span data-draw='entSit'>—</span></p>
+<p class='tc-note'>Rota <b data-draw='ent' data-source='entregas_cliente' data-field='rota'>—</b> · motorista <b data-draw='ent' data-source='entregas_cliente' data-field='motorista'>—</b> de <b data-draw='ent' data-source='entregas_cliente' data-field='data' data-fmt='d'>—</b> · Entrega planejada para <b data-draw='entPlan' data-source='entregas_cliente'>—</b> · <span data-draw='entSit'>—</span></p>
 <div class='nx-al-box' data-draw='entAlerta'></div>
 <ol class='nx-tl'>
 <li data-stage='data'><span class='nx-dot'></span><div><div class='nx-st'>Roteirizado</div><div class='nx-t' data-draw='ent' data-source='entregas_cliente' data-field='data' data-fmt='d'>—</div><div class='tc-sub'>Sequência planejada <span data-draw='ent' data-source='entregas_cliente' data-field='seq_planejada'>—</span> na rota</div></div></li>
 <li data-stage='carregamento'><span class='nx-dot'></span><div><div class='nx-st'>Carregamento</div><div class='nx-t' data-draw='ent' data-source='entregas_cliente' data-field='carregamento' data-fmt='dt'>—</div><div class='tc-sub'>Depósito <span data-draw='ent' data-source='entregas_cliente' data-field='deposito'>—</span> · placa <span data-draw='ent' data-source='entregas_cliente' data-field='placa'>—</span></div></div></li>
-<li data-stage='saida_cd'><span class='nx-dot'></span><div><div class='nx-st'>Saída do CD</div><div class='nx-t' data-draw='ent' data-source='entregas_cliente' data-field='saida_cd' data-fmt='dt'>—</div><div class='tc-sub'>Transportadora <span data-draw='ent' data-source='entregas_cliente' data-field='transportadora'>—</span></div></div></li>
+<li data-stage='saida_cd'><span class='nx-dot'></span><div><div class='nx-st'>Saída do CD</div><div class='nx-t' data-draw='ent' data-source='entregas_cliente' data-field='saida_cd' data-fmt='dt'>—</div><div class='tc-sub'>Transportadora <span data-draw='ent' data-source='entregas_cliente' data-field='transportadora'>—</span> · motorista <span data-draw='ent' data-source='entregas_cliente' data-field='motorista'>—</span></div></div></li>
 <li data-stage='chegada_real'><span class='nx-dot'></span><div><div class='nx-st'>Chegada no cliente</div><div class='nx-t' data-draw='ent' data-source='entregas_cliente' data-field='chegada_real' data-fmt='dt'>—</div><div class='tc-sub'>Deslocamento desde o CD: <span data-draw='ent' data-source='entregas_cliente' data-field='min_cd_ate_cliente' data-fmt='min'>—</span> · previsão do roteirizador: <span data-draw='ent' data-source='entregas_cliente' data-field='chegada_prevista' data-fmt='dt'>—</span></div><div class='nx-prevline' data-draw='entPrev' data-source='entregas_cliente'></div></div></li>
 <li data-stage='inicio_atend'><span class='nx-dot'></span><div><div class='nx-st'>Início do atendimento</div><div class='nx-t' data-draw='ent' data-source='entregas_cliente' data-field='inicio_atend' data-fmt='dt'>—</div><div class='tc-sub'>Espera no cliente: <span data-draw='ent' data-source='entregas_cliente' data-field='min_espera' data-fmt='min'>—</span> · janela <span data-draw='ent' data-source='entregas_cliente' data-field='janela'>—</span></div></div></li>
 <li data-stage='fim_atend' class='nx-last'><span class='nx-dot'></span><div><div class='nx-st'>Entrega finalizada</div><div class='nx-t' data-draw='ent' data-source='entregas_cliente' data-field='fim_atend' data-fmt='dt'>—</div><div class='tc-sub'>Descarga: <span data-draw='ent' data-source='entregas_cliente' data-field='min_descarga' data-fmt='min'>—</span> · tempo total no cliente: <span data-draw='ent' data-source='entregas_cliente' data-field='min_atendimento' data-fmt='min'>—</span></div></div></li>
@@ -2042,7 +2043,7 @@ sla_sim: sla[0], sla_aval: sla[1], ontime_sim: ot[0], ontime_aval: ot[1], otif_s
 });
 TC.RK = {
 transportadoras_dia: {key: (r) => r.transportadora, nome: (t) => t.transportadora, cols: [], per: {de: null, ate: null}, ord: 'sla', min: 10, quick: '7'},
-motoristas_dia: {key: (r) => r.motorista + '|' + r.transportadora, nome: (t) => t.motorista + ' · ' + t.transportadora, cols: ['transportadora'], per: {de: null, ate: null}, ord: 'sla', min: 10, quick: '7'}
+motoristas_dia: {key: (r) => r.motorista + '|' + r.transportadora, nome: (t) => t.motorista + ' · ' + t.transportadora, cols: ['transportadora'], per: {de: null, ate: null}, ord: 'sla', min: 10, quick: '7', transp: ''}
 };
 TC.rkOf = (el) => { const sec = el.closest('[data-rk]'); return sec ? sec.dataset.rk : null; };
 TC.rkDias = () => { const g = dash.data('resumo_dia'); return g.status === 'ok' ? g.data.map((r) => r.data).sort() : []; };
@@ -2061,6 +2062,7 @@ if (g.status !== 'ok' || !R || !Array.isArray(g.data)) return null;
 const m = new Map();
 g.data.forEach((r) => {
 if (r.data < R.de || r.data > R.ate) return;
+if (st.transp && r.transportadora !== st.transp) return;
 const k = st.key(r);
 const t = m.get(k) || {transportadora: r.transportadora, motorista: r.motorista, entregas: 0, viagens: 0, concluidas: 0, ocorrencias: 0, oc_falta: 0, oc_devolucao: 0, oc_avaria: 0, oc_qualidade: 0, sla_sim: 0, sla_aval: 0, ontime_sim: 0, ontime_aval: 0, otif_sim: 0, otif_aval: 0, app_sim: 0, app_aval: 0};
 ['entregas', 'viagens', 'concluidas', 'ocorrencias', 'oc_falta', 'oc_devolucao', 'oc_avaria', 'oc_qualidade', 'sla_sim', 'sla_aval', 'ontime_sim', 'ontime_aval', 'otif_sim', 'otif_aval', 'app_sim', 'app_aval'].forEach((f) => { t[f] += +r[f] || 0; });
@@ -2088,6 +2090,15 @@ TC.rkChips(); TC.rkRedraw();
 }));
 TC.rkChips();
 document.querySelectorAll('[data-rk] .rk-ord').forEach((s) => s.addEventListener('change', () => { const id = TC.rkOf(s); if (id) { TC.RK[id].ord = s.value; TC.rkRedraw(); } }));
+document.querySelectorAll('[data-rk] .rk-transp').forEach((s) => s.addEventListener('change', () => { const id = TC.rkOf(s); if (id) { TC.RK[id].transp = s.value; TC.rkRedraw(); } }));
+dash.draw('rkTransp', (sel) => {
+const id = TC.rkOf(sel), g = id ? dash.data(id) : null, st = id && TC.RK[id];
+const lista = g && g.status === 'ok' && Array.isArray(g.data) ? Array.from(new Set(g.data.map((r) => r.transportadora).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR')) : [];
+const op = (v, t) => { const o = document.createElement('option'); o.value = v; o.textContent = t; return o; };
+sel.replaceChildren(op('', 'Todas'), ...lista.map((t) => op(t, t)));
+if (st && st.transp && !lista.includes(st.transp)) st.transp = '';
+sel.value = st ? st.transp : '';
+});
 document.querySelectorAll('[data-rk] .rk-min').forEach((s) => s.addEventListener('change', () => { const id = TC.rkOf(s); if (id) { TC.RK[id].min = +s.value || 1; TC.rkRedraw(); } }));
 dash.draw('perIn', (inp) => {
 const id = TC.rkOf(inp); if (!id) return;
