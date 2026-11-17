@@ -73,6 +73,8 @@ y -= h; if (!head) L(M, y + 10, M + CW, y + 10, '#D7E2DB', 0.5);
 linha(cols.map((c) => c.h), true); b.rows.forEach((r) => linha(r, false)); y -= 8;
 }
 else if (b.t === 'gap') y -= b.h || 8;
+else if (b.t === 'page') { if (y < PH - 120) novaPagina(); }
+else if (b.t === 'assin') { precisa(52); T(M, y, b.s || '', 9.6, false, TXT); y -= 30; [['Motorista', M, 240], ['Data', M + 260, 80], ['Assinatura', M + 360, CW - 360]].forEach(([r, x, w]) => { L(x, y, x + w, y, '#5B6B62', 0.7); T(x, y - 12, r, 8.5, false, MUT); }); y -= 30; }
 });
 pages.push(ops);
 // monta o arquivo
@@ -109,7 +111,8 @@ const gat = {t: 'box', bold: true, s: 'Gatilho para concorrer: uso do app de no 
 const obs = [
 {t: 'h1', s: 'Observações importantes'},
 {t: 'li', s: 'Atrasos causados pela operação (CD) serão desconsiderados da apuração, somente nos dias em que houve atraso da operação.'},
-{t: 'li', s: 'As regras e os pesos podem ter alterações de um mês para o outro, sempre com informação antecipada aos participantes.'}];
+{t: 'li', s: 'As regras e os pesos podem ter alterações de um mês para o outro, sempre com informação antecipada aos participantes.'},
+{t: 'box', bold: true, s: 'Falta de mercadoria: quando for comprovado que a mercadoria entrou no veículo, a falta poderá ser cobrada pelo valor do produto acrescido de 50%.'}];
 const defs = [
 {t: 'h1', s: 'Definições'},
 {t: 'li', s: 'Uso do app: entregas baixadas pelo aplicativo do motorista sobre as entregas avaliadas no mês.'},
@@ -142,7 +145,38 @@ gat,
 ...obs,
 {t: 'h2', s: 'Advertências (somente frota)'},
 {t: 'box', bold: true, s: 'Uma advertência no mês: o motorista perde 50% do valor final do variável. Acima de duas advertências no mês: o variável é zerado.'},
-...defs]});
+...defs,
+{t: 'page'},
+{t: 'h1', s: 'POP de treinamento · Procedimentos da frota'},
+{t: 'p', s: 'Procedimento Operacional Padrão para os motoristas e ajudantes da frota própria (NFS e Comfrio). Todos os itens abaixo devem ser cumpridos em todas as rotas e fazem parte da avaliação do variável.'},
+{t: 'h2', s: '1. Checklist do veículo (antes de cada saída)'},
+{t: 'li', s: 'Pneus: calibragem, desgaste, cortes e estepe em condições de uso.'},
+{t: 'li', s: 'Freios, luzes, setas, luz de ré, buzina, retrovisores e limpador de para-brisa funcionando.'},
+{t: 'li', s: 'Níveis de óleo, água e combustível suficientes para a rota.'},
+{t: 'li', s: 'Baú limpo, sem odor, portas e travas funcionando; equipamento de refrigeração ligado e na temperatura correta quando a carga exigir.'},
+{t: 'li', s: 'Documentos do veículo e do motorista (CRLV e CNH) e notas fiscais da carga a bordo; EPIs e equipamentos obrigatórios no veículo.'},
+{t: 'li', s: 'Qualquer problema encontrado deve ser comunicado ao suporte antes da saída. Não sair com o veículo sem condições seguras.'},
+{t: 'h2', s: '2. Horário de chegada para expedição'},
+{t: 'li', s: 'Chegar ao CD no horário programado para o carregamento. O atraso na expedição atrasa toda a rota e as janelas dos clientes.'},
+{t: 'li', s: 'Em caso de imprevisto, avisar o suporte imediatamente, antes do horário programado.'},
+{t: 'h2', s: '3. Uso do aplicativo'},
+{t: 'li', s: 'Iniciar a rota no app antes de sair do CD e seguir a sequência de entregas planejada.'},
+{t: 'li', s: 'Registrar no app a chegada, o início e o fim do atendimento de cada cliente, no local do cliente (até 500 m).'},
+{t: 'li', s: 'Nunca dar baixa fora do cliente, depois de sair do local ou várias entregas de uma vez.'},
+{t: 'li', s: 'Registrar toda ocorrência no app no momento em que acontecer, com foto e motivo.'},
+{t: 'li', s: 'Se o app falhar, avisar o suporte na hora para que a baixa seja feita pelo monitoramento.'},
+{t: 'h2', s: '4. Conferência das mercadorias no cliente'},
+{t: 'li', s: 'Conferir junto com o ajudante, volume a volume, os produtos e as quantidades de cada nota antes de entregar.'},
+{t: 'li', s: 'Conferir junto com o recebedor do cliente e verificar o estado das embalagens no ato da entrega.'},
+{t: 'li', s: 'Qualquer divergência (falta, sobra, avaria ou produto trocado) deve ser registrada no app e comunicada ao suporte antes de sair do cliente.'},
+{t: 'li', s: 'Canhoto assinado com nome legível, data e horário do recebimento.'},
+{t: 'li', s: 'Falta de mercadoria: quando for comprovado que a mercadoria entrou no veículo, a falta poderá ser cobrada pelo valor do produto acrescido de 50%.'},
+{t: 'h2', s: '5. Devoluções'},
+{t: 'box', bold: true, s: 'É proibido sair do cliente com devolução, total ou parcial, sem autorização do suporte. Ligar para o suporte, informar o motivo, aguardar a autorização e registrar a devolução no app. A mercadoria volta ao CD com a nota e o motivo registrados.'},
+{t: 'h2', s: '6. Fim da rota'},
+{t: 'li', s: 'Finalizar a rota no app, devolver canhotos, notas e devoluções no CD e informar ao suporte qualquer pendência do dia.'},
+{t: 'assin', s: 'Declaro que recebi o treinamento deste procedimento e estou ciente das regras.'},
+]});
 return Object.assign(base, {titulo: 'Variável das Transportadoras', blocos: [
 {t: 'p', s: 'Regras do pagamento variável dos motoristas das transportadoras terceiras. O bônus é calculado e pago individualmente para cada motorista, em percentual sobre o frete, até o limite de ' + nb(C.pct_frete) + '%. Não há acréscimos (plus). A visão por transportadora é apenas a média ponderada pelas entregas dos seus motoristas: uma transportadora pode ter motoristas premiados mesmo que, na média, não atinja as metas.'},
 gat,
