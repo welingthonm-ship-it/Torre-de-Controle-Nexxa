@@ -62,9 +62,9 @@ TC.rkCanvas = (id, msg) => {
     {h: 'Aderência app', w: 180, a: 'b', k: 'app', cor: '#7A5AF8'}, {h: 'SLA janela', w: 180, a: 'b', k: 'sla', cor: TC.pal[0]},
     {h: '% ocorr.', w: 90, a: 'r'}, {h: 'On Time', w: 180, a: 'b', k: 'ontime', cor: TC.pal[2]}, {h: 'OTIF', w: 180, a: 'b', k: 'otif', cor: TC.pal[3]});
   const W = cols.reduce((s, c) => s + c.w, 0) + 40, RH = 44, top = 96;
-  const c0 = document.createElement('canvas'), cx0 = c0.getContext('2d'); cx0.font = '17px ' + F;
+  const c0 = document.createElement('canvas'), cx0 = c0.getContext('2d'); cx0.font = '500 28px ' + F;
   const linhas = msg ? quebra(cx0, msg, W - 80) : [];
-  const H = top + RH * (list.length + 2) + 24 + (linhas.length ? linhas.length * 26 + 36 : 0);
+  const H = top + RH * (list.length + 2) + 24 + (linhas.length ? linhas.length * 42 + 50 : 0);
   const k = 2, cv = document.createElement('canvas'); cv.width = W * k; cv.height = H * k;
   const ctx = cv.getContext('2d'); ctx.scale(k, k); ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, H);
@@ -116,8 +116,8 @@ TC.rkCanvas = (id, msg) => {
   linha(null, true, -1);
   list.forEach((r, ix) => linha(r, false, ix));
   if (linhas.length) {
-    y += RH + 30; ctx.font = '17px ' + F; ctx.fillStyle = '#2B3A31'; ctx.textAlign = 'left';
-    linhas.forEach((l) => { ctx.fillText(l, 40, y); y += 26; });
+    y += RH + 40; ctx.font = '500 28px ' + F; ctx.fillStyle = '#1B2B22'; ctx.textAlign = 'left';
+    linhas.forEach((l) => { ctx.fillText(l, 40, y); y += 42; });
   }
   return cv;
 };
