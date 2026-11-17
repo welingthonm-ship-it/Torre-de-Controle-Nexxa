@@ -207,6 +207,8 @@ tr.nx-dn-hoje td{background:#F4F9F5;font-weight:var(--cds-font-weight-medium)}
 .nx-pos b{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--cds-chart-grid);color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
 .nx-pos b.p1{background:#E0A11B;color:#fff}.nx-pos b.p2{background:#9AA7A0;color:#fff}.nx-pos b.p3{background:#B87333;color:#fff}
 .nx-rk tr.is-top td{background:var(--nx-soft)}
+.nx-rk tr.nx-rk-sub td{background:var(--color-bg-subtle,#eef3ef);font-weight:var(--cds-font-weight-medium);border-bottom:2px solid var(--color-border-strong,#9bb5a3)}
+.nx-rk tr.nx-rk-sub td.nx-sub-l{text-transform:uppercase;letter-spacing:.04em;font-size:.85em}
 .nx-rk td.nx-ocq{font-weight:var(--cds-font-weight-medium)}
 .nx-rk td.nx-ocq.has{color:var(--color-bad)}
 .nx-rk td.nx-octp{color:var(--color-fg-muted)}
@@ -858,14 +860,6 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 </div>
 </div>
 <p class='tc-lead'>De <b data-draw='rkTxt' data-k='de'>—</b> a <b data-draw='rkTxt' data-k='ate'>—</b>, <b data-draw='rkTxt' data-k='n'>—</b> transportadoras fizeram <b data-draw='rkTxt' data-k='ent'>—</b> entregas.</p>
-<section class='nx-sla-grid' id='transportadoras-destaques' aria-label='Destaques do período'>
-<div class='nx-scard'><div class='nx-shead'><h3>Melhor SLA janela</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='sla' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='sla' data-p='val'>—</div></div>
-<div class='nx-scard'><div class='nx-shead'><h3>Melhor On Time</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='ontime' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='ontime' data-p='val'>—</div></div>
-<div class='nx-scard'><div class='nx-shead'><h3>Melhor OTIF</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='otif' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='otif' data-p='val'>—</div></div>
-<div class='nx-scard nx-scard-app'><div class='nx-shead'><h3>Aderência ao app</h3></div><div class='tc-big' data-draw='rkApp'>—</div><div class='tc-sub'>baixas no app a até 500 m do cliente · melhor: <b data-draw='rkTop' data-k='app' data-p='nome'>—</b> (<span data-draw='rkTop' data-k='app' data-p='val'>—</span>)</div></div>
-<div class='nx-scard'><div class='nx-shead'><h3>Menos ocorrências</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='oc' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='oc' data-p='val'>—</div><div class='tc-sub'><span data-draw='rkTop' data-k='oc' data-p='qtd'>—</span> no período</div></div>
-<div class='nx-scard nx-scard-warn'><div class='nx-shead'><h3>Mais ocorrências</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='ocq' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='ocq' data-p='val'>—</div><div class='tc-sub'><span data-draw='rkTop' data-k='ocq' data-p='pct'>—</span> das entregas</div></div>
-</section>
 <section class='tc-sec' id='transportadoras-tabela'>
 <h2>Ranking do período <span class='nx-rk-per'>· <span data-draw='rkTxt' data-k='de'>—</span> a <span data-draw='rkTxt' data-k='ate'>—</span></span></h2>
 <p class='tc-note'>Cada linha soma as entregas da transportadora no período escolhido. As colunas de nível de serviço contam só as entregas avaliadas.</p>
@@ -1066,14 +1060,6 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 </div>
 </div>
 <p class='tc-lead'>De <b data-draw='rkTxt' data-k='de'>—</b> a <b data-draw='rkTxt' data-k='ate'>—</b>, <b data-draw='rkTxt' data-k='n'>—</b> motoristas fizeram <b data-draw='rkTxt' data-k='ent'>—</b> entregas.</p>
-<section class='nx-sla-grid' id='motoristas-destaques' aria-label='Destaques do período'>
-<div class='nx-scard'><div class='nx-shead'><h3>Melhor SLA janela</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='sla' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='sla' data-p='val'>—</div></div>
-<div class='nx-scard'><div class='nx-shead'><h3>Melhor On Time</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='ontime' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='ontime' data-p='val'>—</div></div>
-<div class='nx-scard'><div class='nx-shead'><h3>Melhor OTIF</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='otif' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='otif' data-p='val'>—</div></div>
-<div class='nx-scard nx-scard-app'><div class='nx-shead'><h3>Aderência ao app</h3></div><div class='tc-big' data-draw='rkApp'>—</div><div class='tc-sub'>baixas no app a até 500 m do cliente · melhor: <b data-draw='rkTop' data-k='app' data-p='nome'>—</b> (<span data-draw='rkTop' data-k='app' data-p='val'>—</span>)</div></div>
-<div class='nx-scard'><div class='nx-shead'><h3>Menos ocorrências</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='oc' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='oc' data-p='val'>—</div><div class='tc-sub'><span data-draw='rkTop' data-k='oc' data-p='qtd'>—</span> no período</div></div>
-<div class='nx-scard nx-scard-warn'><div class='nx-shead'><h3>Mais ocorrências</h3></div><div class='nx-rk-nome' data-draw='rkTop' data-k='ocq' data-p='nome'>—</div><div class='tc-big' data-draw='rkTop' data-k='ocq' data-p='val'>—</div><div class='tc-sub'><span data-draw='rkTop' data-k='ocq' data-p='pct'>—</span> das entregas</div></div>
-</section>
 <section class='tc-sec' id='motoristas-tabela'>
 <h2>Ranking do período <span class='nx-rk-per'>· <span data-draw='rkTxt' data-k='de'>—</span> a <span data-draw='rkTxt' data-k='ate'>—</span></span></h2>
 <p class='tc-note'>Cada linha soma as entregas do motorista no período escolhido, separado por transportadora. As colunas de nível de serviço contam só as entregas avaliadas.</p>
@@ -2138,7 +2124,23 @@ const w = document.createElement('span'); w.className = 'tc-prog';
 const i = document.createElement('i'); const b = document.createElement('b'); b.style.width = (v || 0) + '%'; b.style.background = cor; i.append(b);
 const l = document.createElement('span'); l.textContent = TC.fmt(v, 'pct'); w.append(i, l); return w;
 };
-tb.replaceChildren(...list.map((r, ix) => {
+const sub = (() => {
+if (!list.length) return null;
+const t = {}; ['entregas', 'viagens', 'concluidas', 'ocorrencias', 'oc_falta', 'oc_devolucao', 'oc_avaria', 'oc_qualidade', 'sla_sim', 'sla_aval', 'ontime_sim', 'ontime_aval', 'otif_sim', 'otif_aval', 'app_sim', 'app_aval'].forEach((f) => { t[f] = d3.sum(list, (r) => +r[f] || 0); });
+Object.assign(t, {conc: TC.rkPct(t.concluidas, t.entregas), sla: TC.rkPct(t.sla_sim, t.sla_aval), ontime: TC.rkPct(t.ontime_sim, t.ontime_aval), otif: TC.rkPct(t.otif_sim, t.otif_aval), oc: TC.rkPct(t.ocorrencias, t.entregas), app: TC.rkPct(t.app_sim, t.app_aval)});
+const tr = document.createElement('tr'); tr.className = 'nx-rk-sub';
+const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; if (txt !== null) c.textContent = txt; tr.append(c); return c; };
+td('', 'n');
+if (id === 'motoristas_dia') { td('Subtotal · ' + TC.fmt(new Set(list.map((r) => r.motorista)).size, 'int') + ' motoristas', 'nx-sub-l'); td(st.transp || 'Todas as transportadoras'); }
+else td('Total · ' + TC.fmt(list.length, 'int') + ' transportadoras', 'nx-sub-l');
+td(TC.fmt(t.entregas, 'int'), 'n'); td(TC.fmt(t.viagens, 'int'), 'n'); td(TC.fmt(t.conc, 'pct'), 'n');
+td(null).append(bar(t.app, '#7A5AF8')); td(null).append(bar(t.sla, TC.pal[0])); td(TC.fmt(t.oc, 'pct'), 'n');
+td(null).append(bar(t.ontime, TC.pal[2])); td(null).append(bar(t.otif, TC.pal[3]));
+const oq = td(TC.fmt(t.ocorrencias, 'int'), 'n nx-ocq'); if (t.ocorrencias > 0) oq.classList.add('has');
+['oc_falta', 'oc_devolucao', 'oc_avaria', 'oc_qualidade'].forEach((f) => { const c = td(t[f] ? TC.fmt(t[f], 'int') : '–', 'n nx-octp'); if (t[f]) c.classList.add('has'); });
+return tr;
+})();
+tb.replaceChildren(...(sub ? [sub] : []), ...list.map((r, ix) => {
 const tr = document.createElement('tr'); if (ix < 3) tr.className = 'is-top';
 const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; if (txt !== null) c.textContent = txt; tr.append(c); return c; };
 const pos = td(null, 'n nx-pos'); const pb = document.createElement('b'); if (ix < 3) pb.className = 'p' + (ix + 1); pb.textContent = ix + 1; pos.append(pb);
