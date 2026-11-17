@@ -74,7 +74,7 @@ linha(cols.map((c) => c.h), true); b.rows.forEach((r) => linha(r, false)); y -= 
 }
 else if (b.t === 'gap') y -= b.h || 8;
 else if (b.t === 'page') { if (y < PH - 120) novaPagina(); }
-else if (b.t === 'assin') { precisa(52); T(M, y, b.s || '', 9.6, false, TXT); y -= 30; [['Motorista', M, 240], ['Data', M + 260, 80], ['Assinatura', M + 360, CW - 360]].forEach(([r, x, w]) => { L(x, y, x + w, y, '#5B6B62', 0.7); T(x, y - 12, r, 8.5, false, MUT); }); y -= 30; }
+else if (b.t === 'assin') { precisa(52); T(M, y, b.s || '', 9.6, false, TXT); y -= 30; [['Nome do motorista ou ajudante', M, 240], ['Data', M + 260, 80], ['Assinatura', M + 360, CW - 360]].forEach(([r, x, w]) => { L(x, y, x + w, y, '#5B6B62', 0.7); T(x, y - 12, r, 8.5, false, MUT); }); y -= 30; }
 });
 pages.push(ops);
 // monta o arquivo
