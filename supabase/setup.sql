@@ -54,6 +54,13 @@ do $$ begin
   alter publication supabase_realtime add table public.docs;
 exception when duplicate_object then null; end $$;
 
+-- Permissões da API (necessárias quando o projeto não libera tabelas novas automaticamente)
+grant usage on schema public to anon, authenticated;
+grant select on public.acessos to authenticated;
+grant select, insert, update, delete on public.docs to authenticated;
+grant execute on function public.eh_editor() to authenticated;
+grant execute on function public.tem_acesso() to authenticated;
+
 -- 3) Arquivos (as tabelas CSV geradas pela aba Atualizar dados)
 insert into storage.buckets (id, name, public) values ('arquivos', 'arquivos', false)
   on conflict (id) do nothing;

@@ -112,7 +112,8 @@
       if (!session) { await telaLogin(aviso); ({data: {session}} = await client.auth.getSession()); }
       const {data, error} = await client.from('acessos').select('usuario,perfil,editor').eq('user_id', session.user.id).maybeSingle();
       if (!error && data) { Object.assign(AUTH, {uid: session.user.id, usuario: data.usuario, editor: !!data.editor, perfil: data.perfil}); break; }
-      await client.auth.signOut(); session = null; aviso = 'Este usuário não tem acesso ao portal.';
+      if (error) console.error('[nexxa] acessos', error);
+      await client.auth.signOut(); session = null; aviso = error ? 'Não consegui conferir o acesso: ' + (error.message || error.code || 'erro') : 'Este usuário não tem acesso ao portal.';
     }
     window.NX_AUTH = AUTH;
   };
