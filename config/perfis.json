@@ -1,11 +1,79 @@
 {
-  "_obs": "Cópia de referência dos perfis de acesso do portal (sem senhas). A configuração ativa fica no banco do portal (config/perfis) e é editada na tela Usuários.",
+  "_obs": "Cópia de referência dos perfis de acesso do portal (sem senhas). A configuração ativa fica no banco do portal (config/perfis) e é editada na tela Usuários. Perfis e senhas são criados e alterados somente pelo Claude.",
   "padrao": "admin",
   "perfis": {
-    "admin":         { "nome": "Administrador",       "abas": ["tv","atualizar","monitoramento","rotas","pendentes","prazos","mapa","pendencias","transportadoras","motoristas","variavel","variavel-frota","consulta-cliente","consulta-carga","cs","historico"] },
-    "operacao":      { "nome": "Operação",            "abas": ["tv","monitoramento","rotas","pendentes","prazos","mapa","pendencias","transportadoras","motoristas","consulta-cliente","consulta-carga","cs","historico"] },
-    "cs":            { "nome": "Customer Service",    "abas": ["cs","consulta-cliente"] },
-    "monitoramento": { "nome": "Monitoramento",       "abas": ["tv","monitoramento","rotas","pendentes","prazos","mapa","pendencias","consulta-cliente","consulta-carga"] },
-    "fechamento":    { "nome": "Fechamento de Frete", "abas": ["pendencias","transportadoras","motoristas","variavel","variavel-frota","consulta-carga","historico"] }
+    "admin": {
+      "nome": "welingthonm (Master)",
+      "abas": [
+        "tv",
+        "atualizar",
+        "monitoramento",
+        "rotas",
+        "pendentes",
+        "prazos",
+        "mapa",
+        "pendencias",
+        "transportadoras",
+        "motoristas",
+        "variavel",
+        "variavel-frota",
+        "consulta-cliente",
+        "consulta-carga",
+        "cs",
+        "historico"
+      ],
+      "com_senha": true
+    },
+    "operacao": {
+      "nome": "Operação",
+      "abas": [
+        "tv",
+        "monitoramento",
+        "rotas",
+        "pendentes",
+        "prazos",
+        "mapa",
+        "pendencias",
+        "transportadoras",
+        "motoristas",
+        "consulta-cliente",
+        "consulta-carga",
+        "cs",
+        "historico"
+      ]
+    },
+    "cs": {
+      "nome": "Customer Service",
+      "abas": [
+        "cs",
+        "consulta-cliente"
+      ],
+      "com_senha": true
+    },
+    "monitoramento": {
+      "nome": "Monitoramento",
+      "abas": [
+        "tv",
+        "monitoramento",
+        "rotas",
+        "pendentes",
+        "prazos",
+        "mapa",
+        "pendencias",
+        "consulta-cliente",
+        "consulta-carga"
+      ]
+    },
+    "fechamento": {
+      "nome": "Fechamento de Frete",
+      "abas": [
+        "pendencias",
+        "transportadoras",
+        "motoristas",
+        "variavel",
+        "variavel-frota",
+        "consulta-carga"
+      ]
+    }
   }
 }
