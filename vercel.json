@@ -1,5 +1,7 @@
 {
   "headers": [
+    { "source": "/", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
+    { "source": "/index.html", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] },
     { "source": "/(portal|site)/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-cache" }] }
   ]
 }
