@@ -5,7 +5,7 @@ window.NX_CONFIG = {
   editor: true,         // só no modo de teste (sem Supabase)
   supabase: {
     url: 'https://unvlfnfgtojduiozsepp.supabase.co',
-    anonKey: '',        // chave "anon public" do projeto (Project Settings → API)
+    anonKey: 'sb_publishable_ZCEK6H34wpLm67n35xwVCw_bM8QbnM1',   // chave pública (Publishable key)
     dominio: 'torre-nexxa.com'
   }
 };
