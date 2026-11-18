@@ -43,16 +43,16 @@ Referência em `config/perfis.json` (sem senhas). A configuração ativa é edit
 
 ## Versão web (Vercel)
 
-A pasta `site/` permite rodar o mesmo portal fora do Claude, em qualquer hospedagem estática (Vercel, Netlify etc.), **sem duplicar o código das abas**: o `site/index.html` carrega `portal/index.html` e os mesmos arquivos `.js`/`.css`.
+A pasta `site/` permite rodar o mesmo portal fora do Claude, em qualquer hospedagem estática (Vercel, Netlify etc.), **sem duplicar o código das abas**: o `index.html` da raiz carrega `portal/index.html` e os mesmos arquivos `.js`/`.css`.
 
 | Arquivo | Função |
 |---|---|
-| `site/index.html` | Página de entrada (fontes, D3.js, base visual) |
+| `index.html` (raiz) | Página de entrada (fontes, D3.js, base visual) |
 | `site/base.css` | As variáveis de layout (cores, fontes, espaçamentos) que no Claude vêm da plataforma |
 | `site/dash-shim.js` | Implementa `dash.draw`, `dash.data`, `dash.calc` e `claude.use(...)` (banco, arquivos, downloads, usuário) |
 | `site/loader.js` | Monta o portal a partir de `portal/index.html` |
 | `site/config.js` | Configuração (pastas, permissão de edição) |
-| `vercel.json` | Abre o portal na raiz do site |
+| `vercel.json` | Cabeçalhos de cache |
 
 **Publicar na Vercel:** Root Directory = `./` (raiz do repositório), Application Preset = **Other**, sem comando de build.
 
