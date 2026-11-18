@@ -1381,24 +1381,18 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 </div>
 </section>
 <section id='usuarios' class='nx-tab tc' role='tabpanel' aria-label='Usuários e perfis' hidden>
-<p class='tc-note'>Cada pessoa entra no portal com a própria conta Claude, depois de receber acesso pelo botão de compartilhar do portal. Aqui você define o perfil de cada uma; o perfil diz quais abas ela vê. Quem edita o portal sempre vê todas as abas. <span data-draw='usEu'>—</span></p>
+<p class='tc-note'>Consulta dos perfis de acesso. <b>Perfis, senhas e pessoas são criados e alterados somente pelo Claude</b>, a pedido do responsável pelo portal (W ARRAES), e não por esta tela. <span data-draw='usEu'>—</span></p>
 <p class='nx-al-err' data-draw='usMsg'></p>
 <section class='tc-sec'>
 <h2>Perfis e abas</h2>
-<p class='tc-note'>Marque as abas que cada perfil pode ver. As mudanças valem na hora para quem estiver com o portal aberto.</p>
+<p class='tc-note'>Abas que cada perfil vê. Perfil de quem ainda não tem perfil definido: <b data-draw='usPadrao'>—</b>.</p>
 <div class='tc-tablewrap tc-scroll' data-draw='usPerfis'></div>
-<div class='nx-us-novo'><label>Novo perfil <input class='nx-input' id='us-novo' placeholder='Ex.: Comercial' aria-label='Nome do novo perfil'></label><button type='button' class='nx-btn' id='us-novo-bt'>Criar perfil</button></div>
 <h3 class='nx-us-h3'>Senhas dos perfis</h3>
-<p class='tc-note'>Quando algum perfil tiver senha, quem abrir o portal (exceto quem edita) precisa escolher um perfil com senha e digitá-la para entrar. Perfis sem senha não aparecem na tela de entrada.</p>
+<p class='tc-note'>Quando algum perfil tiver senha, quem abrir o portal (exceto quem edita) escolhe um perfil com senha e digita a senha para entrar.</p>
 <div data-draw='usSenhas'></div>
-<label class='nx-us-padrao'>Perfil de quem ainda não tem perfil definido <select class='dash-select' data-draw='usPadrao' aria-label='Perfil padrão'></select></label>
 </section>
 <section class='tc-sec'>
-<h2>Pessoas</h2>
-<label>Buscar pessoa <input type='search' class='nx-input' id='us-busca' placeholder='Nome ou e-mail' aria-label='Buscar pessoa pelo nome ou e-mail'></label>
-<div class='nx-us-res' data-draw='usRes'></div>
-<p class='tc-empty' id='us-vazio' hidden>Ninguém encontrado. A busca só acha pessoas da sua organização no Claude e convidados que já participaram do portal.</p>
-<h3 class='nx-us-h3'>Pessoas com perfil definido</h3>
+<h2>Pessoas com perfil definido</h2>
 <div data-draw='usLista'></div>
 </section>
 <details class='tc-foot'><summary>Importante sobre o acesso</summary><dl>

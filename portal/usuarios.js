@@ -39,7 +39,7 @@ document.querySelectorAll('#nx-sair').forEach((e) => { e.hidden = !A.login; });
 ['loginPerfis', 'loginMsg', 'usSenhas'].forEach((n) => dash.draw(n));
 const r = raiz(); if (r) r.classList.remove('nx-acesso-pendente');
 A.pronto = true;
-['usPerfis', 'usLista', 'usPadrao', 'usEu', 'usRes', 'usSenhas'].forEach((n) => dash.draw(n));
+['usPerfis', 'usLista', 'usPadrao', 'usEu', 'usSenhas'].forEach((n) => dash.draw(n));
 };
 if (!TC.acShow) { TC.acShow = TC.showTab; TC.showTab = (id) => { const ok = TC.acAbas(); if (id === 'usuarios' && !A.editor) return; if (ok && id !== 'usuarios' && !ok.has(id)) return; TC.acShow(id); }; document.querySelectorAll('.nx-tabs [data-tab]').forEach((b) => b.addEventListener('click', (e) => { if (b.hidden) e.stopImmediatePropagation(); }, true)); }
 document.querySelectorAll('.nx-tabs [data-tab="usuarios"]').forEach((b) => b.addEventListener('click', () => TC.showTab('usuarios')));
@@ -58,31 +58,27 @@ W.__nxAcU1 = db.doc('config/perfis').onSnapshot((s) => { A.cfg = s.exists ? Obje
 W.__nxAcU2 = db.collection('usuarios').onSnapshot((s) => { A.usuarios = {}; s.docs.forEach((d) => { A.usuarios[d.id] = d.data(); }); fim(); }, () => fim());
 TC.acDb = db; TC.acUser = user;
 })();
-TC.acSalvaCfg = async (cfg) => { try { await TC.acDb.doc('config/perfis').set({perfis: cfg.perfis, padrao: cfg.padrao, em: new Date().toISOString()}); TC.acMsg(''); } catch (e) { TC.acMsg('Não consegui salvar. Só quem edita o portal pode mudar perfis.'); } };
+TC.acSalvaCfg = async (cfg) => { TC.acMsg('Perfis e senhas são alterados somente pelo Claude.'); return; try { await TC.acDb.doc('config/perfis').set({perfis: cfg.perfis, padrao: cfg.padrao, em: new Date().toISOString()}); TC.acMsg(''); } catch (e) { TC.acMsg('Não consegui salvar. Só quem edita o portal pode mudar perfis.'); } };
 TC.acMsg = (t) => { TC.acMsgTxt = t; dash.draw('usMsg'); };
 })();
 dash.draw('usMsg', (el) => { el.textContent = TC.acMsgTxt || ''; });
 dash.draw('usEu', (el) => {
 const A = TC.ac; if (!A.pronto) { el.textContent = '—'; return; }
-el.textContent = A.editor ? 'Você edita o portal: entra sem senha, vê todas as abas e gerencia os perfis.' : 'Seu perfil: ' + ((TC.acCfg().perfis[A.login || TC.acPerfilDe(A.eu)] || {}).nome || '—');
+el.textContent = A.editor ? 'Você edita o portal: entra sem senha e vê todas as abas.' : 'Seu perfil: ' + ((TC.acCfg().perfis[A.login || TC.acPerfilDe(A.eu)] || {}).nome || '—');
 });
-dash.draw('usPadrao', (sel) => {
-const c = TC.acCfg(); sel.replaceChildren(...Object.entries(c.perfis).map(([k, p]) => { const o = document.createElement('option'); o.value = k; o.textContent = p.nome; return o; }));
-sel.value = c.padrao;
-sel.onchange = () => { const n = JSON.parse(JSON.stringify(TC.acCfg())); n.padrao = sel.value; TC.acSalvaCfg(n); };
-});
+dash.draw('usPadrao', (el) => { const c = TC.acCfg(); el.textContent = (c.perfis[c.padrao] || {}).nome || '—'; });
 dash.draw('usPerfis', (box) => {
 box.replaceChildren(); if (!TC.ac.editor) return;
 const c = TC.acCfg(), abas = Array.from(document.querySelectorAll('.nx-tabs [data-tab]')).filter((b) => b.dataset.tab !== 'usuarios').map((b) => ({id: b.dataset.tab, nome: b.textContent.replace(/[📺⬆]/g, '').replace(/\s+\d+$/, '').trim()}));
 const t = document.createElement('table'); t.className = 'tc-table nx-us-mat';
 const th = document.createElement('thead'), hr = document.createElement('tr');
 const h0 = document.createElement('th'); h0.textContent = 'Aba'; hr.append(h0);
-Object.entries(c.perfis).forEach(([k, p]) => { const h = document.createElement('th'); h.className = 'nx-us-pf'; const s = document.createElement('div'); s.textContent = p.nome; h.append(s); if (k !== 'admin') { const x = document.createElement('button'); x.type = 'button'; x.className = 'nx-us-x'; x.textContent = 'remover'; x.title = 'Remover o perfil ' + p.nome; x.onclick = () => { const n = JSON.parse(JSON.stringify(c)); delete n.perfis[k]; if (n.padrao === k) n.padrao = Object.keys(n.perfis)[0]; TC.acSalvaCfg(n); }; h.append(x); } hr.append(h); });
+Object.entries(c.perfis).forEach(([k, p]) => { const h = document.createElement('th'); h.className = 'nx-us-pf'; const s = document.createElement('div'); s.textContent = p.nome; h.append(s); if (false) { const x = document.createElement('button'); x.type = 'button'; x.className = 'nx-us-x'; x.textContent = 'remover'; x.title = 'Remover o perfil ' + p.nome; x.onclick = () => { const n = JSON.parse(JSON.stringify(c)); delete n.perfis[k]; if (n.padrao === k) n.padrao = Object.keys(n.perfis)[0]; TC.acSalvaCfg(n); }; h.append(x); } hr.append(h); });
 th.append(hr); t.append(th);
 const tb = document.createElement('tbody');
 abas.forEach((a) => {
 const tr = document.createElement('tr'); tr.dataset.key = a.id; const td0 = document.createElement('td'); td0.textContent = a.nome; tr.append(td0);
-Object.entries(c.perfis).forEach(([k, p]) => { const td = document.createElement('td'); td.className = 'nx-us-c'; const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = p.abas.includes(a.id); cb.disabled = k === 'admin'; cb.setAttribute('aria-label', p.nome + ': ' + a.nome);
+Object.entries(c.perfis).forEach(([k, p]) => { const td = document.createElement('td'); td.className = 'nx-us-c'; const cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = p.abas.includes(a.id); cb.disabled = true; cb.setAttribute('aria-label', p.nome + ': ' + a.nome);
 cb.onchange = () => { const n = JSON.parse(JSON.stringify(c)); const s = new Set(n.perfis[k].abas); if (cb.checked) s.add(a.id); else s.delete(a.id); n.perfis[k].abas = abas.map((x) => x.id).filter((x) => s.has(x)); TC.acSalvaCfg(n); };
 td.append(cb); tr.append(td); });
 tb.append(tr);
@@ -98,45 +94,15 @@ const falta = ids.filter((i) => !ps[i]);
 if (falta.length && !TC.acBuscando) { TC.acBuscando = true; TC.acUser.profiles(ids).then((r) => { TC.acNomes = Object.assign({}, TC.acNomes || {}, r); TC.acBuscando = false; dash.draw('usLista'); }); }
 ids.forEach((i) => { if (!ps[i]) ps[i] = {name: '', avatarUrl: '', guest: false}; });
 const t = document.createElement('table'); t.className = 'tc-table'; const tb = document.createElement('tbody');
-const hd = document.createElement('thead'); const hr = document.createElement('tr'); ['Pessoa', 'Perfil', ''].forEach((x) => { const h = document.createElement('th'); h.textContent = x; hr.append(h); }); hd.append(hr);
+const hd = document.createElement('thead'); const hr = document.createElement('tr'); ['Pessoa', 'Perfil'].forEach((x) => { const h = document.createElement('th'); h.textContent = x; hr.append(h); }); hd.append(hr);
 ids.sort((a, b) => ((ps[a] && ps[a].name) || '').localeCompare((ps[b] && ps[b].name) || '')).forEach((id) => {
 const tr = document.createElement('tr'); tr.dataset.key = id;
 const td1 = document.createElement('td'); const im = document.createElement('img'); im.className = 'nx-us-av'; im.alt = ''; im.src = ps[id].avatarUrl; td1.append(im, ' ' + (ps[id].name || 'Pessoa sem nome visível') + (ps[id].guest ? ' (convidado)' : ''));
-const td2 = document.createElement('td'); const sel = document.createElement('select'); sel.className = 'dash-select';
-Object.entries(c.perfis).forEach(([k, p]) => { const o = document.createElement('option'); o.value = k; o.textContent = p.nome; sel.append(o); });
-sel.value = c.perfis[A.usuarios[id].perfil] ? A.usuarios[id].perfil : c.padrao;
-sel.onchange = async () => { try { await TC.acDb.doc('usuarios/' + id).set({perfil: sel.value, em: new Date().toISOString()}); } catch (e) { TC.acMsg('Não consegui salvar o perfil.'); } };
-td2.append(sel);
-const td3 = document.createElement('td'); const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'nx-btn nx-btn-sec'; rm.textContent = 'Usar perfil padrão';
-rm.onclick = async () => { try { await TC.acDb.doc('usuarios/' + id).delete(); } catch (e) { TC.acMsg('Não consegui remover.'); } };
-td3.append(rm);
-tr.append(td1, td2, td3); tb.append(tr);
+const td2 = document.createElement('td'); td2.textContent = (c.perfis[A.usuarios[id].perfil] || c.perfis[c.padrao] || {}).nome || '—';
+tr.append(td1, td2); tb.append(tr);
 });
 t.append(hd, tb); box.append(t);
 });
-dash.draw('usRes', (box) => {
-const hits = (TC.acHits || []).filter((h) => !h.isMe), c = TC.acCfg();
-box.replaceChildren(...hits.map((h) => {
-const row = document.createElement('div'); row.className = 'nx-us-hit';
-const im = document.createElement('img'); im.className = 'nx-us-av'; im.alt = ''; im.src = h.avatarUrl;
-const nm = document.createElement('span'); nm.textContent = (h.name || 'Pessoa') + (h.guest ? ' (convidado)' : '');
-const sel = document.createElement('select'); sel.className = 'dash-select'; Object.entries(c.perfis).forEach(([k, p]) => { const o = document.createElement('option'); o.value = k; o.textContent = p.nome; sel.append(o); }); sel.value = (TC.ac.usuarios[h.id] && TC.ac.usuarios[h.id].perfil) || c.padrao;
-const bt = document.createElement('button'); bt.type = 'button'; bt.className = 'nx-btn'; bt.textContent = TC.ac.usuarios[h.id] ? 'Atualizar perfil' : 'Definir perfil';
-bt.onclick = async () => { try { await TC.acDb.doc('usuarios/' + h.id).set({perfil: sel.value, em: new Date().toISOString()}); } catch (e) { TC.acMsg('Não consegui salvar o perfil.'); } };
-row.append(im, nm, sel, bt); return row;
-}));
-document.querySelectorAll('#us-vazio').forEach((e) => { e.hidden = hits.length > 0 || !TC.acQ; });
-});
-document.querySelectorAll('#us-busca').forEach((inp) => {
-const run = async () => { if (!TC.acUser) return; TC.acQ = inp.value.trim(); TC.acHits = await TC.acUser.search(TC.acQ); dash.draw('usRes'); };
-inp.oninput = run; inp.onfocus = run;
-});
-document.querySelectorAll('#us-novo-bt').forEach((b) => { b.onclick = () => {
-const i = document.getElementById('us-novo'); const nome = (i && i.value || '').trim(); if (!nome) return;
-const n = JSON.parse(JSON.stringify(TC.acCfg())); let k = nome.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 30) || 'perfil'; while (n.perfis[k]) k += '_';
-n.perfis[k] = {nome, abas: []}; TC.acSalvaCfg(n); i.value = '';
-}; });
-
 dash.draw('loginPerfis', (sel) => {
 const L = TC.acComSenha(), pref = TC.ac.eu && TC.ac.usuarios[TC.ac.eu] ? TC.ac.usuarios[TC.ac.eu].perfil : null;
 sel.replaceChildren(...L.map(([k, p]) => { const o = document.createElement('option'); o.value = k; o.textContent = p.nome; return o; }));
@@ -160,11 +126,7 @@ Object.entries(c.perfis).forEach(([k, p]) => {
 const row = document.createElement('div'); row.className = 'nx-us-senha';
 const nm = document.createElement('b'); nm.textContent = p.nome;
 const st = document.createElement('span'); st.className = 'tc-sub'; st.textContent = p.senha && p.senha.h ? '🔒 com senha' : 'sem senha';
-const i = document.createElement('input'); i.type = 'password'; i.className = 'nx-input'; i.autocomplete = 'new-password'; i.placeholder = 'Nova senha (mín. 6)'; i.setAttribute('aria-label', 'Nova senha do perfil ' + p.nome);
-const sv = document.createElement('button'); sv.type = 'button'; sv.className = 'nx-btn'; sv.textContent = 'Salvar senha';
-sv.onclick = async () => { const v = i.value; if (v.length < 6) { TC.acMsg('A senha precisa ter pelo menos 6 caracteres.'); return; } const sal = Array.from(crypto.getRandomValues(new Uint8Array(16))).map((x) => x.toString(16).padStart(2, '0')).join(''); const n = JSON.parse(JSON.stringify(TC.acCfg())); n.perfis[k].senha = {sal, h: await TC.acHash(sal, v)}; i.value = ''; TC.acSalvaCfg(n); };
-row.append(nm, st, i, sv);
-if (p.senha && p.senha.h) { const rm = document.createElement('button'); rm.type = 'button'; rm.className = 'nx-btn nx-btn-sec'; rm.textContent = 'Remover senha'; rm.onclick = () => { const n = JSON.parse(JSON.stringify(TC.acCfg())); delete n.perfis[k].senha; TC.acSalvaCfg(n); }; row.append(rm); }
+row.append(nm, st);
 box.append(row);
 });
 });
