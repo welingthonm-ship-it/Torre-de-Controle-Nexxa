@@ -77,10 +77,27 @@ h1, h2, h3, h4 { line-height: 1.25; }
 .nx-boot { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: var(--color-fg-muted); }
 .nx-boot-erro { padding: 24px; color: var(--color-bad); }
 
-/* Aviso de modo local (dados no próprio navegador) */
+/* Faixa do topo: usuário conectado / modo de teste */
 .nx-local {
-  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: flex-end;
   font-size: var(--cds-font-size-caption); color: var(--cds-text-secondary);
-  background: #fff8e1; border-bottom: 1px solid #f1d58a; padding: 6px 24px;
+  padding: 6px 24px; min-height: 30px;
 }
+.nx-local:empty { display: none; }
+.nx-local-teste { justify-content: flex-start; background: #fff8e1; border-bottom: 1px solid #f1d58a; }
+.nx-local-sair { border: 1px solid var(--color-border-line); background: var(--color-panel); border-radius: 6px; padding: 2px 10px; font-size: inherit; }
+
+/* Tela de entrada */
+.nx-auth {
+  max-width: 360px; margin: 10vh auto 0; background: var(--color-panel); border: 1px solid var(--color-border-line);
+  border-top: 4px solid #1F7A3A; border-radius: 10px; padding: 28px 28px 24px; display: flex; flex-direction: column; gap: 12px;
+}
+.nx-auth-logo { width: 180px; height: auto; margin: 0 auto 4px; display: block; }
+.nx-auth h1 { margin: 0; font-size: 1.25rem; font-weight: 600; text-align: center; }
+.nx-auth-sub { margin: -8px 0 8px; text-align: center; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); letter-spacing: .08em; text-transform: uppercase; }
+.nx-auth label { display: flex; flex-direction: column; gap: 4px; font-size: var(--cds-font-size-caption); color: var(--cds-text-secondary); }
+.nx-auth input { border: 1px solid var(--color-border-line); border-radius: 6px; padding: 9px 10px; font-size: .95rem; background: #fff; }
+.nx-auth input:focus { outline: 2px solid #1F7A3A55; border-color: #1F7A3A; }
+.nx-auth button { margin-top: 4px; background: #1F7A3A; color: #fff; border: 0; border-radius: 6px; padding: 10px; font-weight: 600; font-size: .95rem; }
+.nx-auth-msg { margin: 0; min-height: 1.2em; color: var(--color-bad); font-size: var(--cds-font-size-caption); }
 @media print { .nx-local { display: none; } }

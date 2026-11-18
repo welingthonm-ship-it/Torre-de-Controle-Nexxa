@@ -18,7 +18,8 @@ const use = (n) => (W.claude && W.claude.use ? W.claude.use(n).catch(() => null)
 TC.acCfg = () => A.cfg || PADRAO();
 TC.acPerfilDe = (id) => { const c = TC.acCfg(), u = id && A.usuarios[id]; const p = u && c.perfis[u.perfil] ? u.perfil : c.padrao; return c.perfis[p] ? p : Object.keys(c.perfis)[0]; };
 TC.acComSenha = () => Object.entries(TC.acCfg().perfis).filter(([, p]) => p.senha && p.senha.h);
-TC.acPrecisaLogin = () => !A.editor && !A.login && TC.acComSenha().length > 0;
+// Na versão web com login próprio (W.NX_AUTH), a pessoa já entrou com usuário e senha: não pede a senha do perfil.
+TC.acPrecisaLogin = () => !W.NX_AUTH && !A.editor && !A.login && TC.acComSenha().length > 0;
 TC.acAbas = () => {
 if (A.editor) return null; // editor do portal vê tudo
 if (TC.acPrecisaLogin()) return new Set();

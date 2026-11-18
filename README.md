@@ -56,7 +56,9 @@ A pasta `site/` permite rodar o mesmo portal fora do Claude, em qualquer hospeda
 
 **Publicar na Vercel:** Root Directory = `./` (raiz do repositório), Application Preset = **Other**, sem comando de build.
 
-**Dados nesta etapa:** ficam salvos no navegador de quem usa (IndexedDB). Para carregar, envie o relatório do roteirizador na aba **Atualizar dados**. Alertas, perfis e configurações do variável também ficam só naquele navegador. A próxima etapa troca esse armazenamento por um banco compartilhado (Supabase), mudando apenas `site/dash-shim.js`.
+**Dados:** com o Supabase configurado em `site/config.js` (URL e chave pública), todos usam o mesmo banco, com login por usuário e senha. Sem ele, o site roda em modo de teste, com os dados salvos só no navegador.
+
+**Supabase:** a estrutura do banco está em `supabase/setup.sql` (tabelas, regras de acesso, armazenamento de arquivos e as funções `criar_login` / `remover_login`, que só rodam no SQL Editor). Logins e senhas são criados apenas pelo SQL Editor, nunca pelo site.
 
 ## Dados
 

@@ -5,9 +5,9 @@
  *   dash.draw / dash.data / dash.calc / dash.refresh / dash.setLink
  *   claude.use('db' | 'assets' | 'downloads' | 'user')
  *
- * Nesta etapa os dados ficam no próprio navegador (IndexedDB): quem enviar a planilha na aba
- * "Atualizar dados" vê o portal completo naquele navegador. A troca por um banco compartilhado
- * (Supabase) é feita depois, só neste arquivo, sem mexer no código das abas.
+ * Onde ficam os dados:
+ *   - com NX_CONFIG.supabase preenchido: banco compartilhado no Supabase, com login por usuário e senha;
+ *   - sem ele: no próprio navegador (IndexedDB), só para teste.
  */
 (() => {
   'use strict';
@@ -47,10 +47,85 @@
     };
   })();
 
+  /* ---------- backend: Supabase (compartilhado) ou navegador (teste) ---------- */
+  const SB = CFG.supabase && CFG.supabase.url && CFG.supabase.anonKey ? CFG.supabase : null;
+  const AUTH = {uid: 'local', usuario: 'Este navegador', editor: !!CFG.editor, perfil: null};
+  let client = null;
+  const backend = SB ? {
+    async docs() {
+      const out = new Map(); let de = 0;
+      for (;;) {
+        const {data, error} = await client.from('docs').select('path,data').order('path').range(de, de + 999);
+        if (error) throw error;
+        data.forEach((r) => out.set(r.path, r.data));
+        if (data.length < 1000) break; de += 1000;
+      }
+      return out;
+    },
+    async put(path, v) { const {error} = await client.from('docs').upsert({path, data: v, updated_at: new Date().toISOString()}); if (error) throw error; },
+    async del(path) { const {error} = await client.from('docs').delete().eq('path', path); if (error) throw error; },
+    async putBlob(id, blob) { const {error} = await client.storage.from('arquivos').upload(id, blob, {contentType: blob.type || 'text/csv', upsert: true}); if (error) throw error; },
+    async getBlob(id) { const {data, error} = await client.storage.from('arquivos').download(id); if (error) throw error; return data; },
+    async delBlob(id) { await client.storage.from('arquivos').remove([id]); },
+    listen(fn) {
+      client.channel('nx-docs').on('postgres_changes', {event: '*', schema: 'public', table: 'docs'}, (p) => {
+        const path = (p.new && p.new.path) || (p.old && p.old.path); if (!path) return;
+        fn(path, p.eventType === 'DELETE' ? undefined : p.new.data);
+      }).subscribe();
+    }
+  } : {
+    async docs() { return (await idb.all('docs')) || new Map(); },
+    async put(path, v) { await idb.put('docs', path, v); },
+    async del(path) { await idb.del('docs', path); },
+    async putBlob(id, blob) { await idb.put('blobs', id, blob); },
+    async getBlob(id) { return idb.get('blobs', id); },
+    async delBlob(id) { await idb.del('blobs', id); },
+    listen() { /* um navegador só */ }
+  };
+
+  /* ---------- login (só com Supabase) ---------- */
+  const telaLogin = (msg) => new Promise((ok) => {
+    const raiz = document.getElementById('nx-root');
+    raiz.innerHTML = '<form class="nx-auth" autocomplete="on"><img class="nx-auth-logo" alt="Nexxa" src="/site/logo-nexxa.png" onerror="this.remove()">' +
+      '<h1>Torre de Controle</h1><p class="nx-auth-sub">Monitoramento de entregas</p>' +
+      '<label>Usuário<input name="u" autocomplete="username" required></label>' +
+      '<label>Senha<input name="s" type="password" autocomplete="current-password" required></label>' +
+      '<p class="nx-auth-msg" role="alert"></p><button type="submit">Entrar</button></form>';
+    const f = raiz.querySelector('form'), m = f.querySelector('.nx-auth-msg');
+    if (msg) m.textContent = msg;
+    f.onsubmit = async (e) => {
+      e.preventDefault(); m.textContent = 'Entrando…';
+      const u = f.u.value.trim().toLowerCase();
+      const email = u.includes('@') ? u : u + '@' + (SB.dominio || 'torre-nexxa.com');
+      const {error} = await client.auth.signInWithPassword({email, password: f.s.value});
+      if (error) { m.textContent = 'Usuário ou senha incorretos.'; f.s.value = ''; return; }
+      raiz.innerHTML = '<div class="nx-boot">Carregando o portal…</div>'; ok();
+    };
+  });
+  const entrar = async () => {
+    if (!SB) return;
+    if (!window.supabase || !window.supabase.createClient) throw new Error('biblioteca do Supabase não carregou');
+    client = window.supabase.createClient(SB.url, SB.anonKey, {auth: {persistSession: true}});
+    let {data: {session}} = await client.auth.getSession();
+    let aviso = '';
+    for (;;) {
+      if (!session) { await telaLogin(aviso); ({data: {session}} = await client.auth.getSession()); }
+      const {data, error} = await client.from('acessos').select('usuario,perfil,editor').eq('user_id', session.user.id).maybeSingle();
+      if (!error && data) { Object.assign(AUTH, {uid: session.user.id, usuario: data.usuario, editor: !!data.editor, perfil: data.perfil}); break; }
+      await client.auth.signOut(); session = null; aviso = 'Este usuário não tem acesso ao portal.';
+    }
+    window.NX_AUTH = AUTH;
+  };
+  const sair = async () => { try { if (client) await client.auth.signOut(); } finally { location.reload(); } };
+
   /* ---------- banco de documentos (mesma forma do db do Claude) ---------- */
   const DOCS = new Map();
   const subs = new Set();
-  const docsReady = idb.all('docs').then((m) => { if (m) m.forEach((v, k) => DOCS.set(k, v)); }).catch(() => {});
+  let docsReady = null;
+  const iniciaDocs = () => docsReady || (docsReady = (async () => {
+    const m = await backend.docs(); m.forEach((v, k) => DOCS.set(k, v));
+    backend.listen((path, v) => { if (v === undefined) DOCS.delete(path); else DOCS.set(path, v); notify(path); });
+  })().catch((e) => { console.error('[nexxa] banco', e); }));
   const clone = (v) => (v === undefined ? undefined : JSON.parse(JSON.stringify(v)));
   const segs = (p) => String(p).split('/').filter(Boolean);
   const snapDoc = (path) => { const v = DOCS.get(path); return {id: segs(path).pop(), exists: v !== undefined, data: () => clone(v)}; };
@@ -61,8 +136,10 @@
   };
   const notify = (path) => subs.forEach((s) => { if (s.match(path)) { try { s.cb(); } catch (e) { console.error(e); } } });
   const write = async (path, val) => {
+    const antes = DOCS.get(path);
     if (val === undefined) DOCS.delete(path); else DOCS.set(path, clone(val));
-    try { if (val === undefined) await idb.del('docs', path); else await idb.put('docs', path, clone(val)); } catch (e) { console.warn('[nexxa] não salvou no navegador', e); }
+    try { if (val === undefined) await backend.del(path); else await backend.put(path, clone(val)); }
+    catch (e) { if (antes === undefined) DOCS.delete(path); else DOCS.set(path, antes); notify(path); const er = new Error('não foi possível salvar: ' + (e.message || e)); er.code = 'not_granted'; throw er; }
     notify(path);
   };
   const merge = (a, b) => {
@@ -76,13 +153,13 @@
   };
   const docRef = (path) => ({
     id: segs(path).pop(), path,
-    get: async () => { await docsReady; return snapDoc(path); },
-    set: async (v) => { await docsReady; await write(path, v); },
-    update: async (v) => { await docsReady; await write(path, merge(DOCS.get(path), v)); },
-    delete: async () => { await docsReady; await write(path, undefined); },
+    get: async () => { await iniciaDocs(); return snapDoc(path); },
+    set: async (v) => { await iniciaDocs(); await write(path, v); },
+    update: async (v) => { await iniciaDocs(); await write(path, merge(DOCS.get(path), v)); },
+    delete: async () => { await iniciaDocs(); await write(path, undefined); },
     onSnapshot: (cb, err) => {
       const s = {match: (p) => p === path, cb: () => cb(snapDoc(path))};
-      subs.add(s); docsReady.then(() => { if (subs.has(s)) s.cb(); });
+      subs.add(s); iniciaDocs().then(() => { if (subs.has(s)) s.cb(); });
       return () => subs.delete(s);
     }
   });
@@ -90,11 +167,11 @@
     path,
     doc: (id) => docRef(segs(path).concat(id || Math.random().toString(36).slice(2)).join('/')),
     add: async (v) => { const r = docRef(segs(path).concat(Date.now().toString(36) + Math.random().toString(36).slice(2, 7)).join('/')); await r.set(v); return r; },
-    get: async () => { await docsReady; return snapCol(path); },
+    get: async () => { await iniciaDocs(); return snapCol(path); },
     onSnapshot: (cb, err) => {
       const pre = segs(path).join('/') + '/', n = segs(path).length + 1;
       const s = {match: (p) => p.startsWith(pre) && segs(p).length === n, cb: () => cb(snapCol(path))};
-      subs.add(s); docsReady.then(() => { if (subs.has(s)) s.cb(); });
+      subs.add(s); iniciaDocs().then(() => { if (subs.has(s)) s.cb(); });
       return () => subs.delete(s);
     }
   });
@@ -104,16 +181,17 @@
   const hex = () => Array.from(crypto.getRandomValues(new Uint8Array(16))).map((b) => b.toString(16).padStart(2, '0')).join('');
   const assets = {
     upload: async (blob) => {
-      const id = hex(); await idb.put('blobs', id, blob);
+      if (SB && !AUTH.editor) { const e = new Error('sem permissão'); e.code = 'not_writer'; throw e; }
+      const id = hex(); await backend.putBlob(id, blob);
       return {id, url: '/_blob/' + id, sizeBytes: blob.size, contentType: blob.type};
     },
-    delete: async (id) => { await idb.del('blobs', String(id).replace(/^\/?_blob\//, '')); },
+    delete: async (id) => { await backend.delBlob(String(id).replace(/^\/?_blob\//, '')); },
     list: async () => ({assets: [], usage: {}})
   };
   const blobText = async (url) => {
     const id = String(url).replace(/^\/?_blob\//, '');
-    const b = await idb.get('blobs', id);
-    if (!b) throw new Error('arquivo ' + id + ' não está neste navegador');
+    const b = await backend.getBlob(id);
+    if (!b) throw new Error('arquivo ' + id + ' não encontrado');
     return typeof b === 'string' ? b : b.text();
   };
 
@@ -129,9 +207,11 @@
     }
   };
   const user = {
-    id: async () => 'local', me: async () => ({id: 'local', name: 'Este navegador'}),
-    isOwner: () => CFG.editor, canEdit: () => CFG.editor, can: () => CFG.editor,
-    profiles: async (ids) => Object.fromEntries((ids || []).map((i) => [i, {id: i, name: i === 'local' ? 'Este navegador' : ''}])),
+    id: async () => AUTH.uid, me: async () => ({id: AUTH.uid, name: AUTH.usuario}),
+    isOwner: () => AUTH.editor, canEdit: () => AUTH.editor, can: () => AUTH.editor,
+    profiles: async (ids) => Object.fromEntries((ids || []).map((i) => {
+      const u = DOCS.get('usuarios/' + i); return [i, {id: i, name: (u && u.usuario) || (i === AUTH.uid ? AUTH.usuario : ''), avatarUrl: ''}];
+    })),
     search: async () => []
   };
   const CAPS = {db, assets, downloads, user};
@@ -165,7 +245,7 @@
     const cur = DATA.get(id);
     DATA.set(id, {status: 'loading', data: cur && cur.data, refreshing: !!cur});
     try {
-      await docsReady;
+      await iniciaDocs();
       const doc = DOCS.get('datasets/' + id), url = doc && doc.source && doc.source.url;
       let txt = null;
       if (url && /_blob\//.test(url)) txt = await blobText(url);
@@ -248,7 +328,11 @@
       let w = innerWidth; addEventListener('resize', () => { if (innerWidth !== w) { w = innerWidth; agenda(); } });
       rodaTudo();
     },
-    _config: CFG
+    _config: CFG,
+    _entrar: entrar,
+    _sair: sair,
+    _auth: AUTH,
+    _modo: SB ? 'supabase' : 'local'
   };
   window.dash = dash;
 })();

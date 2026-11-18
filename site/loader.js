@@ -4,6 +4,17 @@
   const BASE = (window.NX_CONFIG && window.NX_CONFIG.portal) || '/portal/';
   const raiz = document.getElementById('nx-root');
   const aviso = (t) => { raiz.textContent = t; raiz.className = 'nx-boot-erro'; };
+  try { await window.dash._entrar(); }
+  catch (e) { aviso('Não foi possível conectar ao banco de dados (' + e.message + ').'); return; }
+  // faixa do topo: quem está conectado e onde ficam os dados
+  document.querySelectorAll('#nx-local').forEach((bar) => {
+    const A = window.dash._auth, sb = window.dash._modo === 'supabase';
+    const txt = document.createElement('span');
+    txt.textContent = sb ? 'Conectado como ' + A.usuario + (A.editor ? ' (pode atualizar os dados)' : '') : 'Versão de teste · os dados ficam salvos só neste navegador.';
+    bar.replaceChildren(txt);
+    if (sb) { const b = document.createElement('button'); b.type = 'button'; b.className = 'nx-local-sair'; b.textContent = 'Sair'; b.onclick = () => window.dash._sair(); bar.append(b); }
+    else bar.classList.add('nx-local-teste');
+  });
   let html;
   try {
     const r = await fetch(BASE + 'index.html', {cache: 'no-cache'});
