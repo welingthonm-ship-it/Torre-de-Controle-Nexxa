@@ -260,6 +260,7 @@ tr.nx-dn-hoje td{background:#F4F9F5;font-weight:var(--cds-font-weight-medium)}
 .nx-al{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:var(--cds-font-weight-medium);border-radius:999px;padding:2px 8px;white-space:nowrap;border:1px solid currentColor}
 .nx-al::before{content:'⚠'}
 .nx-al-socorro{color:#B42318;background:#FDECEA}
+.nx-al-sinistro{color:#FFFFFF;background:#B42318;font-weight:600}
 .nx-al-baixa_manual{color:#1F7A45;background:#E3F4EA}
 .nx-bx{margin-top:var(--cds-gap-sm);display:flex;flex-direction:column;gap:var(--cds-gap-sm)}
 .nx-bx-list{max-height:240px;overflow:auto;border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:6px 10px;background:#fff;display:flex;flex-direction:column;gap:4px;font-size:var(--cds-font-size-caption)}
@@ -393,6 +394,7 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 <div class='nx-al-head'><strong>Alerta da rota <span data-draw='alRota'>—</span></strong><span class='tc-sub'>O alerta aparece em todas as entregas pendentes dessa rota: Rotas do dia, Entregas pendentes, Rastreio - Consulta cliente e Modo TV.</span></div>
 <div class='nx-al-fields'>
 <label>Tipo de alerta <select class='dash-select' id='al-tipo' aria-label='Tipo de alerta'>
+<option value='sinistro'>Sinistro – carga roubada (recolocar os pedidos)</option>
 <option value='socorro'>Carro quebrado – buscando socorro</option>
 <option value='quebrado_prox'>Carro quebrado – carga seguirá no próximo dia</option>
 <option value='reprogramado'>Reprogramado para o próximo dia</option>
@@ -2302,7 +2304,7 @@ TC.tvArm();
 <script>
 (() => {
 const W = window;
-TC.alTipos = {socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência'};
+TC.alTipos = {sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência'};
 TC.al = W.__nxAl || new Map(); W.__nxAl = TC.al;
 TC.alPode = !!W.__nxAlPode;
 TC.alId = (data, rota) => (data + '__' + rota).replace(/[^A-Za-z0-9_\-.~:@+]/g, '_');
