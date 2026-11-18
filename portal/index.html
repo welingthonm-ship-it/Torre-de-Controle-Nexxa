@@ -260,6 +260,15 @@ tr.nx-dn-hoje td{background:#F4F9F5;font-weight:var(--cds-font-weight-medium)}
 .nx-al{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:var(--cds-font-weight-medium);border-radius:999px;padding:2px 8px;white-space:nowrap;border:1px solid currentColor}
 .nx-al::before{content:'⚠'}
 .nx-al-socorro{color:#B42318;background:#FDECEA}
+.pd-rel-bar{display:flex;justify-content:flex-end;margin:0 0 8px}
+.pd-rel{border:1px solid var(--color-border,#D7E2DB);border-left:4px solid var(--nx-g2,#2E8B4A);border-radius:8px;padding:12px 14px;margin:0 0 12px;display:flex;flex-direction:column;gap:10px;background:var(--color-bg,#fff)}
+.pd-rel-head{display:flex;flex-direction:column;gap:2px}
+.pd-rel-fields{display:flex;flex-wrap:wrap;gap:12px}
+.pd-rel-fields label{display:flex;flex-direction:column;gap:4px;font-size:.9em}
+.pd-rel-acts{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.pd-rel-acts .nx-btn{margin-left:0}
+.pd-rel-n{font-size:.95em}
+.pd-rel-ok{color:var(--color-good,#1F7A3A);font-size:.9em}
 .nx-al-sinistro{color:#FFFFFF;background:#B42318;font-weight:600}
 .nx-al-baixa_manual{color:#1F7A45;background:#E3F4EA}
 .nx-bx{margin-top:var(--cds-gap-sm);display:flex;flex-direction:column;gap:var(--cds-gap-sm)}
@@ -650,6 +659,34 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 <section class='tc-sec' id='pd-tabela'>
 <h2>Entregas pendentes</h2>
 <p class='tc-note'>Das mais atrasadas para as que ainda estão no prazo. O atraso é contado até agora, a partir do horário final da janela do cliente no dia previsto da entrega. Entregas D+1, D+2… só ficam atrasadas depois do dia delas.</p>
+<div class='pd-rel-bar'><button type='button' class='nx-btn' id='pd-rel-abrir'>📄 Relatório PDF</button></div>
+<div class='pd-rel' id='pd-rel' hidden>
+<div class='pd-rel-head'><strong>Relatório PDF das pendentes</strong><span class='tc-sub'>Separado por rota, com o alerta da rota e a previsão atual de cada entrega. Usa o período, o atraso, o prazo e a busca da tela, mais os filtros abaixo.</span></div>
+<div class='pd-rel-fields'>
+<label>Entregas <select class='dash-select' id='pd-rel-cls' aria-label='Separação das pendentes no relatório'>
+<option value=''>Todas as pendentes</option>
+<option value='hoje'>Para hoje</option>
+<option value='atr'>Atrasadas</option>
+<option value='fut'>Dias à frente</option>
+</select></label>
+<label>Transportadora <select class='dash-select' id='pd-rel-transp-sel' data-draw='pdRelTransp' data-source='entregas_cliente' aria-label='Transportadora do relatório'></select></label>
+<label>Rotas <select class='dash-select' id='pd-rel-alerta' aria-label='Rotas com ou sem alerta'>
+<option value='todas'>Todas as rotas</option>
+<option value='com'>Só rotas com alerta</option>
+<option value='sem'>Só rotas sem alerta</option>
+</select></label>
+<label>Tipo de alerta <select class='dash-select' id='pd-rel-tipo-sel' data-draw='pdRelTipo' aria-label='Tipo de alerta'></select></label>
+</div>
+<div class='pd-rel-acts'>
+<span class='pd-rel-n'>No relatório: <b data-draw='pdRelN' data-source='entregas_cliente'>—</b></span>
+<button type='button' class='nx-btn' id='pd-rel-baixar'>⬇ Baixar PDF</button>
+<button type='button' class='nx-btn nx-btn-sec' id='pd-rel-fechar'>Fechar</button>
+<span class='tc-sub pd-rel-msg pd-rel-gerando' hidden>Gerando o PDF…</span>
+<span class='pd-rel-msg pd-rel-ok' hidden>✓ Relatório baixado.</span>
+<span class='nx-al-err pd-rel-msg pd-rel-vazio' hidden>Nenhuma entrega pendente com esses filtros.</span>
+<span class='nx-al-err pd-rel-msg pd-rel-erro' hidden>Não foi possível baixar o PDF neste navegador.</span>
+</div>
+</div>
 <div class='tc-tablewrap tc-scroll nx-pd-wrap'>
 <table class='tc-table' data-source='entregas_cliente' data-row-key='id'>
 <thead><tr>
@@ -2422,6 +2459,7 @@ el.append(q); }
 <link rel='stylesheet' href='tv.css'>
 <script src='variavel.js'></script>
 <script src='pdfregras.js'></script>
+<script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>
 <script src='usuarios.js'></script>
 <script>
