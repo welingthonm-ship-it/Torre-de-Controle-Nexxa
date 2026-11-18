@@ -41,6 +41,23 @@ https://claude.ai/code/artifact/fa947590-1bf6-4bb5-abc9-664c8fdc6732
 
 Referência em `config/perfis.json` (sem senhas). A configuração ativa é editada na tela Usuários do portal.
 
+## Versão web (Vercel)
+
+A pasta `site/` permite rodar o mesmo portal fora do Claude, em qualquer hospedagem estática (Vercel, Netlify etc.), **sem duplicar o código das abas**: o `site/index.html` carrega `portal/index.html` e os mesmos arquivos `.js`/`.css`.
+
+| Arquivo | Função |
+|---|---|
+| `site/index.html` | Página de entrada (fontes, D3.js, base visual) |
+| `site/base.css` | As variáveis de layout (cores, fontes, espaçamentos) que no Claude vêm da plataforma |
+| `site/dash-shim.js` | Implementa `dash.draw`, `dash.data`, `dash.calc` e `claude.use(...)` (banco, arquivos, downloads, usuário) |
+| `site/loader.js` | Monta o portal a partir de `portal/index.html` |
+| `site/config.js` | Configuração (pastas, permissão de edição) |
+| `vercel.json` | Abre o portal na raiz do site |
+
+**Publicar na Vercel:** Root Directory = `./` (raiz do repositório), Application Preset = **Other**, sem comando de build.
+
+**Dados nesta etapa:** ficam salvos no navegador de quem usa (IndexedDB). Para carregar, envie o relatório do roteirizador na aba **Atualizar dados**. Alertas, perfis e configurações do variável também ficam só naquele navegador. A próxima etapa troca esse armazenamento por um banco compartilhado (Supabase), mudando apenas `site/dash-shim.js`.
+
 ## Dados
 
 Os dados (entregas, clientes, motoristas, perfis e senhas) ficam no banco do portal e **não** estão neste repositório. Não versione planilhas ou exportações com dados de clientes ou motoristas.
