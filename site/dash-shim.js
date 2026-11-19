@@ -293,7 +293,9 @@
       } catch (e) { console.error('[nexxa] desenho', name, e); }
     });
   };
-  const rodaTudo = () => { pend = 0; if (!started) return; DRAWS.forEach((_, n) => roda(n)); };
+  let obs = null;
+  // Mudanças de "hidden" feitas pelos próprios desenhos não disparam outro ciclo (evita redesenhar sem parar).
+  const rodaTudo = () => { pend = 0; if (!started) return; DRAWS.forEach((_, n) => roda(n)); if (obs) obs.takeRecords(); };
   const agenda = () => { if (!pend) pend = requestAnimationFrame(rodaTudo); };
 
   const dash = {
@@ -324,8 +326,11 @@
           ult = u || '';
         });
       });
-      new MutationObserver((ms) => { if (ms.some((m) => m.attributeName === 'hidden')) agenda(); })
-        .observe(document.body, {subtree: true, attributes: true, attributeFilter: ['hidden']});
+      obs = new MutationObserver((ms) => {
+        // só redesenha quando uma seção realmente apareceu ou sumiu
+        if (ms.some((m) => m.attributeName === 'hidden' && (m.oldValue !== null) !== m.target.hasAttribute('hidden'))) agenda();
+      });
+      obs.observe(document.body, {subtree: true, attributes: true, attributeOldValue: true, attributeFilter: ['hidden']});
       let w = innerWidth; addEventListener('resize', () => { if (innerWidth !== w) { w = innerWidth; agenda(); } });
       rodaTudo();
     },
