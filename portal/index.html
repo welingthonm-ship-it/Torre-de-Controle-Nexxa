@@ -276,6 +276,9 @@ tr.nx-dn-hoje td{background:#F4F9F5;font-weight:var(--cds-font-weight-medium)}
 .nx-bx-all{font-weight:var(--cds-font-weight-medium);border-bottom:1px solid var(--color-border-line);padding-bottom:4px}
 .nx-al-quebrado_prox{color:#9A5B00;background:#FDF3E1}
 .nx-al-reprogramado{color:#175CD3;background:#EAF1FD}
+.nx-prev-sep{display:block;margin-top:3px;font-size:11px;font-weight:var(--cds-font-weight-medium);color:#B54708;white-space:nowrap}
+.nx-prev-sep::before{content:'⏳ '}
+.nx-prev-sep-lg{font-size:13px;white-space:normal;margin:0 0 6px;padding:6px 10px;background:#FFF6E5;border-radius:6px}
 .nx-prev.nx-prev-reprog{color:#6941C6;background:#F4EBFF}
 .nx-prev-reprog-box{border-left-color:#175CD3}
 .nx-al-outro{color:#475467;background:#F2F4F7}
@@ -2024,7 +2027,9 @@ const fim = String(r.janela || '').split('–')[1];
 let jf = null; if (/^\d\d:\d\d$/.test(fim || '')) jf = TC.tmin(TC.mstr(m).slice(0, 10) + ' ' + fim);
 const ini = String(r.janela || '').split('–')[0];
 const semJanela = !fim || ini === fim;
-return {tipo, dt: TC.mstr(m), m, perc, saida, ref, atraso, desvio: Math.round(m - cp), foraJanela: !semJanela && jf !== null && m > jf + 60};
+// Rota em stand-by e ainda sem horário de expedição (saída do CD): veículo em separação/carregamento
+const standby = !saida && rs.some((x) => x.status_rota === 'StandBy') && !rs.some((x) => x.saida_cd);
+return {tipo, dt: TC.mstr(m), m, perc, saida, ref, atraso, desvio: Math.round(m - cp), foraJanela: !semJanela && jf !== null && m > jf + 60, standby};
 };
 TC.prevTxt = (p) => {
 if (!p) return '—';
@@ -2034,7 +2039,7 @@ const d = p.desvio, dv = Math.abs(d) < 5 ? 'no horário do roteirizador' : TC.fm
 const base = p.tipo === 'parada' ? 'última parada atendida ' + TC.fdt(TC.mstr(p.ref.real)).slice(0, 5) + ' ' + TC.fdt(TC.mstr(p.ref.real)).slice(11) + ' (' + (p.ref.x.cliente || 'cliente') + ') + percurso planejado'
 : p.tipo === 'saida' ? 'saída real ' + TC.fdt(p.saida).slice(0, 5) + ' ' + TC.fdt(p.saida).slice(11) + ' + ' + TC.fmin(p.perc) + ' de percurso'
 : p.tipo === 'patio' ? 'veículo ainda no CD: agora + ' + TC.fmin(p.perc) + ' de percurso' : 'previsão do roteirizador (veículo ainda não saiu)';
-return 'Previsão ' + TC.fdt(p.dt) + ' · ' + base + (p.atraso > 0 ? ' + ' + TC.fmin(p.atraso) + ' de atraso acumulado até agora' : '') + ' · ' + dv + (p.foraJanela ? ' · após a janela do cliente' : '');
+return (p.standby ? 'Rota em stand-by: em separação/carregamento no CD · ' : '') + 'Previsão ' + TC.fdt(p.dt) + ' · ' + base + (p.atraso > 0 ? ' + ' + TC.fmin(p.atraso) + ' de atraso acumulado até agora' : '') + ' · ' + dv + (p.foraJanela ? ' · após a janela do cliente' : '');
 };
 if (window.__nxPrevTick) clearInterval(window.__nxPrevTick);
 window.__nxPrevTick = setInterval(() => {
@@ -2049,6 +2054,7 @@ if (p.tipo === 'real') { td.textContent = TC.fdt(p.dt); return; }
 const b = document.createElement('span'); b.className = 'nx-prev' + (p.tipo === 'reprog' ? ' nx-prev-reprog' : p.foraJanela ? ' nx-prev-bad' : p.desvio > 15 ? ' nx-prev-warn' : '');
 b.textContent = (p.tipo === 'reprog' ? 'reprog. ' : 'prev. ') + TC.fdt(p.dt).slice(0, 5) + ' ' + TC.fdt(p.dt).slice(11);
 b.title = TC.prevTxt(p); td.append(b);
+if (p.standby) { const sb = document.createElement('span'); sb.className = 'nx-prev-sep'; sb.textContent = 'em separação/carregamento'; sb.title = 'Rota em stand-by, ainda sem horário de expedição'; td.append(sb); }
 };
 TC.cliRows = () => {
 const g = dash.data('entregas_cliente');
@@ -3030,6 +3036,7 @@ if (!p || p.tipo === 'real') return;
 const b = document.createElement('strong'); b.textContent = (p.tipo === 'reprog' ? 'Entrega reprogramada · nova previsão: ' : 'Previsão atualizada: ') + TC.fdt(p.dt);
 const s = document.createElement('div'); s.className = 'tc-sub'; s.textContent = TC.prevTxt(p).split(' · ').slice(1).join(' · ');
 el.classList.toggle('nx-prev-bad', !!p.foraJanela); el.classList.toggle('nx-prev-warn', !p.foraJanela && p.desvio > 15);
+if (p.standby) { const sb = document.createElement('div'); sb.className = 'nx-prev-sep nx-prev-sep-lg'; sb.textContent = 'Rota em stand-by: pedido em separação/carregamento no CD. A previsão será atualizada quando o veículo for expedido.'; el.append(sb); }
 el.append(b, s);
 });
 dash.draw('entSit', (el) => {
