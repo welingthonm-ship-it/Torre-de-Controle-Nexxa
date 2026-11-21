@@ -10,7 +10,7 @@
 <button type='button' role='tab' data-tab='pendentes' aria-selected='false' data-nome='Entregas pendentes' title='Entregas pendentes'><span class='nx-n'>1.3</span> <span class='nx-lab'>Entregas pendentes</span></button>
 <button type='button' role='tab' data-tab='prazos' aria-selected='false' data-nome='Prazos D+N' title='Prazos D+N'><span class='nx-n'>1.4</span> <span class='nx-lab'>Prazos D+N</span></button>
 <button type='button' role='tab' data-tab='mapa' aria-selected='false' data-nome='Mapa de entregas' title='Mapa de entregas'><span class='nx-n'>1.5</span> <span class='nx-lab'>Mapa de entregas</span></button>
-<button type='button' role='tab' data-tab='pendencias' aria-selected='false' data-nome='Ocorrências do dia' title='Ocorrências do dia'><span class='nx-n'>1.6</span> <span class='nx-lab'>Ocorrências do dia</span></button>
+<button type='button' role='tab' data-tab='pendencias' aria-selected='false' data-nome='Ocorrências do dia' title='Ocorrências do dia'><span class='nx-n'>1.6</span> <span class='nx-lab'>Ocorrências do dia</span><span class='nx-ov-badge' data-draw='ocValN' data-source='entregas_cliente' title='Faltas aguardando validação'></span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>2</span> Rankings</div>
 <button type='button' role='tab' data-tab='transportadoras' aria-selected='false' data-nome='Ranking de transportadoras' title='Ranking de transportadoras'><span class='nx-n'>2.1</span> <span class='nx-lab'>Transportadoras</span></button>
@@ -596,6 +596,11 @@
 <div class='nx-oc-head' aria-hidden='true'><span>Tipo</span><span></span><span>Qtd.</span><span>% das entregas</span></div>
 <div data-draw='ocor' data-source='ocorrencias_dia'></div>
 <p class='tc-empty' id='ocor-vazio' hidden>Nenhuma ocorrência registrada neste dia.</p>
+</section>
+<section class='tc-sec' id='ocorrencias-validacao'>
+<h2>Validação das faltas</h2>
+<p class='tc-note'>Toda falta registrada nos últimos 3 dias de rota precisa ser validada pelo monitoramento: confirmar se a carga foi <b>bipada</b> e se existe o <b>vídeo do carregamento</b> que prova ao motorista que o produto foi carregado. Com bipagem e vídeo, a falta fica comprovada como responsabilidade do motorista/transportadora. Enquanto houver falta sem validação, a aba 1.6 pisca em laranja. <b data-draw='ocValTot' data-source='entregas_cliente'>—</b></p>
+<div data-draw='ocValList' data-source='entregas_cliente'></div>
 </section>
 <section class='tc-sec' id='ocorrencias-motoristas'>
 <h2>Ranking de motoristas por ocorrências</h2>
@@ -2212,6 +2217,7 @@ el.append(q); }
 <script src='variavel.js'></script>
 <script src='pdfregras.js'></script>
 <script src='relfim.js'></script>
+<script src='ocval.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>
 <script src='usuarios.js'></script>
