@@ -1,7 +1,7 @@
 // Usuários e perfis: cada pessoa entra com a própria conta Claude; o perfil define quais abas ela vê.
 (() => {
 const W = window;
-const ABAS = () => Array.from(document.querySelectorAll('.nx-tabs [data-tab]')).filter((b) => b.dataset.tab !== 'usuarios').map((b) => ({id: b.dataset.tab, nome: b.textContent.replace(/[📺⬆]/g, '').replace(/\s+\d+$/, '').trim()}));
+const ABAS = () => Array.from(document.querySelectorAll('.nx-tabs [data-tab]')).filter((b) => b.dataset.tab !== 'usuarios').map((b) => ({id: b.dataset.tab, nome: b.dataset.nome || b.textContent.replace(/[📺⬆]/g, '').replace(/\s+\d+$/, '').trim()}));
 const PADRAO = () => ({
 padrao: 'operacao',
 perfis: {
@@ -12,7 +12,7 @@ cs: {nome: 'Customer Service', abas: ['cs', 'consulta-cliente']}
 });
 TC.ac = W.__nxAc = W.__nxAc || {cfg: null, usuarios: {}, eu: null, editor: null, pronto: false, login: null};
 const A = TC.ac;
-const raiz = () => { const h = document.querySelector('.nx-tabs'); return h ? h.closest('header') && h.closest('header').parentElement : null; };
+const raiz = () => { const h = document.querySelector('.nx-banner'); return h ? h.parentElement : null; };
 if (!A.pronto) { const r = raiz(); if (r) r.classList.add('nx-acesso-pendente'); }
 const use = (n) => (W.claude && W.claude.use ? W.claude.use(n).catch(() => null) : Promise.resolve(null));
 TC.acCfg = () => A.cfg || PADRAO();
@@ -70,7 +70,7 @@ el.textContent = A.editor ? 'Você edita o portal: entra sem senha e vê todas a
 dash.draw('usPadrao', (el) => { const c = TC.acCfg(); el.textContent = (c.perfis[c.padrao] || {}).nome || '—'; });
 dash.draw('usPerfis', (box) => {
 box.replaceChildren(); if (!TC.ac.editor) return;
-const c = TC.acCfg(), abas = Array.from(document.querySelectorAll('.nx-tabs [data-tab]')).filter((b) => b.dataset.tab !== 'usuarios').map((b) => ({id: b.dataset.tab, nome: b.textContent.replace(/[📺⬆]/g, '').replace(/\s+\d+$/, '').trim()}));
+const c = TC.acCfg(), abas = Array.from(document.querySelectorAll('.nx-tabs [data-tab]')).filter((b) => b.dataset.tab !== 'usuarios').map((b) => ({id: b.dataset.tab, nome: b.dataset.nome || b.textContent.replace(/[📺⬆]/g, '').replace(/\s+\d+$/, '').trim()}));
 const t = document.createElement('table'); t.className = 'tc-table nx-us-mat';
 const th = document.createElement('thead'), hr = document.createElement('tr');
 const h0 = document.createElement('th'); h0.textContent = 'Aba'; hr.append(h0);
