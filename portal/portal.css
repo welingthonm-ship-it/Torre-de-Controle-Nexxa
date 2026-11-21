@@ -425,3 +425,5 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 .rt-fim .tc-note{margin:0;flex:1}
 .rt-fim .nx-btn{margin-left:0}
 .rt-fim-ok{color:var(--color-good,#1F7A3A);font-size:var(--cds-font-size-caption)}
+.nx-treino .rt-fim-msg{font-size:var(--cds-font-size-caption)}
+.nx-treino .rt-fim-ok{color:var(--color-good,#1F7A3A)}

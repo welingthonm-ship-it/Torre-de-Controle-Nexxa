@@ -30,8 +30,8 @@
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>6</span> Histórico</div>
 <button type='button' role='tab' data-tab='historico' aria-selected='false' data-nome='Histórico' title='Histórico'><span class='nx-n'>6.1</span> <span class='nx-lab'>Histórico</span></button>
 </div>
-<div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>7</span> Treinamento</div>
-<button type='button' role='tab' data-tab='treinamento' aria-selected='false' data-nome='Treinamento' title='Treinamento'><span class='nx-n'>7.1</span> <span class='nx-lab'>Materiais e POPs</span></button>
+<div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>7</span> POP - Treinamentos</div>
+<button type='button' role='tab' data-tab='treinamento' aria-selected='false' data-nome='POP - Treinamentos' title='POP - Treinamentos'><span class='nx-n'>7.1</span> <span class='nx-lab'>POP - Treinamentos</span></button>
 </div>
 </div>
 </nav>
@@ -511,9 +511,9 @@
 </dl>
 </details>
 </section>
-<section id='treinamento' class='nx-tab tc' role='tabpanel' aria-label='Treinamento' hidden>
+<section id='treinamento' class='nx-tab tc' role='tabpanel' aria-label='POP - Treinamentos' hidden>
 <section class='tc-sec'>
-<h2>Treinamento</h2>
+<h2>POP - Treinamentos</h2>
 <p class='tc-note'>Materiais para treinar motoristas, transportadoras e a equipe de monitoramento. Cada PDF tem a marca da Nexxa e, nos POPs, um campo de assinatura para registrar o treinamento.</p>
 <div class='nx-treino-grid'>
 <article class='nx-treino'>
@@ -539,6 +539,16 @@
 <h3>Procedimentos do monitoramento</h3>
 <p>Horário do turno, conferência das rotas expedidas e não expedidas, alertas até as 08:00, atrasos e encerramento.</p>
 <button type='button' class='nx-btn' data-treino='monitoramento'>⬇ Baixar PDF</button>
+</article>
+<article class='nx-treino'>
+<div class='nx-treino-tag'>Relatório</div>
+<h3>Fechamento do dia</h3>
+<p>Resumo do dia, situação das rotas, alertas, ocorrências e pendências por rota, com a previsão atual. Usa o período escolhido em 1.2 Rotas do dia (padrão: dia monitorado).</p>
+<button type='button' class='nx-btn rt-fim-btn'>⬇ Baixar PDF</button>
+<span class='tc-sub rt-fim-msg rt-fim-gerando' hidden>Gerando o PDF…</span>
+<span class='rt-fim-msg rt-fim-ok' hidden>✓ Relatório baixado.</span>
+<span class='nx-al-err rt-fim-msg rt-fim-vazio' hidden>Os dados ainda estão carregando. Tente de novo em instantes.</span>
+<span class='nx-al-err rt-fim-msg rt-fim-erro' hidden>Não foi possível baixar o PDF neste navegador.</span>
 </article>
 </div>
 </section>

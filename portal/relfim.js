@@ -72,7 +72,7 @@ TC.relFimDoc = () => {
 };
 
 const msg = (k) => document.querySelectorAll('.rt-fim-msg').forEach((e) => { e.hidden = !e.classList.contains(k); });
-document.querySelectorAll('#rt-fim-pdf').forEach((b) => { b.onclick = async () => {
+document.querySelectorAll('#rt-fim-pdf, .rt-fim-btn').forEach((b) => { b.onclick = async () => {
   const doc = TC.relFimDoc();
   if (!doc) { msg('rt-fim-vazio'); return; }
   msg('rt-fim-gerando'); b.disabled = true;
