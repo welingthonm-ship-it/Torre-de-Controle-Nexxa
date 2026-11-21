@@ -30,6 +30,9 @@
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>6</span> Histórico</div>
 <button type='button' role='tab' data-tab='historico' aria-selected='false' data-nome='Histórico' title='Histórico'><span class='nx-n'>6.1</span> <span class='nx-lab'>Histórico</span></button>
 </div>
+<div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>7</span> Treinamento</div>
+<button type='button' role='tab' data-tab='treinamento' aria-selected='false' data-nome='Treinamento' title='Treinamento'><span class='nx-n'>7.1</span> <span class='nx-lab'>Materiais e POPs</span></button>
+</div>
 </div>
 </nav>
 <script src='menu.js'></script>
@@ -68,6 +71,7 @@
 <option value='socorro'>Carro quebrado – buscando socorro</option>
 <option value='quebrado_prox'>Carro quebrado – carga seguirá no próximo dia</option>
 <option value='reprogramado'>Reprogramado para o próximo dia</option>
+<option value='atraso_saida'>Saída com atraso – possíveis atrasos nas entregas</option>
 <option value='baixa_manual'>Baixa manual – entregue (falha no app do motorista)</option>
 <option value='outro'>Outra divergência</option>
 </select></label>
@@ -500,6 +504,48 @@
 <dt>Sem coordenada</dt><dd>Clientes sem latitude/longitude válida no relatório não aparecem no mapa.</dd>
 </dl>
 </details>
+</section>
+<section id='treinamento' class='nx-tab tc' role='tabpanel' aria-label='Treinamento' hidden>
+<section class='tc-sec'>
+<h2>Treinamento</h2>
+<p class='tc-note'>Materiais para treinar motoristas, transportadoras e a equipe de monitoramento. Cada PDF tem a marca da Nexxa e, nos POPs, um campo de assinatura para registrar o treinamento.</p>
+<div class='nx-treino-grid'>
+<article class='nx-treino'>
+<div class='nx-treino-tag'>Variável</div>
+<h3>Regras do variável · Transportadoras</h3>
+<p>Gatilho do app, metas de entregas sem atraso e de ocorrências, bônus de até 1,5% sobre o frete por motorista.</p>
+<button type='button' class='nx-btn' data-treino='var-transp'>⬇ Baixar PDF</button>
+</article>
+<article class='nx-treino'>
+<div class='nx-treino-tag'>Variável</div>
+<h3>Regras do variável · Frota</h3>
+<p>Produtividade, nível de serviço, plus, advertências e, no final, o POP dos motoristas da frota.</p>
+<button type='button' class='nx-btn' data-treino='var-frota'>⬇ Baixar PDF</button>
+</article>
+<article class='nx-treino'>
+<div class='nx-treino-tag'>POP</div>
+<h3>Procedimentos dos motoristas</h3>
+<p>Checklist do veículo, horário de chegada para expedição, uso do app, conferência no cliente, devoluções e fim da rota.</p>
+<button type='button' class='nx-btn' data-treino='motoristas'>⬇ Baixar PDF</button>
+</article>
+<article class='nx-treino'>
+<div class='nx-treino-tag'>POP</div>
+<h3>Procedimentos do monitoramento</h3>
+<p>Horário do turno, conferência das rotas expedidas e não expedidas, alertas até as 08:00, atrasos e encerramento.</p>
+<button type='button' class='nx-btn' data-treino='monitoramento'>⬇ Baixar PDF</button>
+</article>
+</div>
+</section>
+<section class='tc-sec'>
+<h2>Rotina do monitoramento</h2>
+<ol class='nx-rotina'>
+<li><b>05:00 · Chegada</b><span>Abrir o portal e enviar o relatório do roteirizador em Atualizar dados.</span></li>
+<li><b>Expedição</b><span>Em 1.2 Rotas do dia: Em execução = expedidas; Stand-by = não expedidas (em separação/carregamento). Confirmar com o CD se todas vão sair.</span></li>
+<li><b>Até 08:00 · Alertas</b><span>Rota que não vai sair: alerta de reprogramação (ou carro quebrado/sinistro) com o motivo. Rota que vai sair atrasada: alerta "Saída com atraso".</span></li>
+<li><b>Durante o turno</b><span>Acompanhar pendentes, mapa e ocorrências; registrar carro quebrado, baixa manual e cobrar o uso do app.</span></li>
+<li><b>Encerramento</b><span>Última atualização, reprogramar o que não será entregue e repassar o relatório PDF das pendentes.</span></li>
+</ol>
+</section>
 </section>
 <section id='historico' class='nx-tab tc' role='tabpanel' aria-label='Histórico' hidden>
 <p class='tc-lead'>Evolução diária de entregas e do nível de serviço. Clique em um dia nos gráficos para escolhê-lo nas outras abas; o dia escolhido aparece destacado.</p>
@@ -1213,6 +1259,7 @@ el.textContent = '(' + TC.fmt(n, 'int') + ')';
 });
 </script>
 <script src='rotasfiltro.js'></script>
+<script src='treino.js'></script>
 <script>
 (() => {
 const ymd = (s) => String(s || '').slice(0, 10).split('-').map(Number);
@@ -2029,7 +2076,7 @@ TC.tvArm();
 (() => {
 const W = window;
 TC.alProxDia = {reprogramado: true, quebrado_prox: true};
-TC.alTipos = {sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência'};
+TC.alTipos = {sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', atraso_saida: 'Saída com atraso – possíveis atrasos nas entregas', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência'};
 TC.al = W.__nxAl || new Map(); W.__nxAl = TC.al;
 TC.alPode = !!W.__nxAlPode;
 TC.alId = (data, rota) => (data + '__' + rota).replace(/[^A-Za-z0-9_\-.~:@+]/g, '_');

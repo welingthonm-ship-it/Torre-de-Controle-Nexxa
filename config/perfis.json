@@ -20,7 +20,8 @@
         "consulta-cliente",
         "consulta-carga",
         "cs",
-        "historico"
+        "historico",
+        "treinamento"
       ],
       "com_senha": true
     },
@@ -39,7 +40,8 @@
         "consulta-cliente",
         "consulta-carga",
         "cs",
-        "historico"
+        "historico",
+        "treinamento"
       ]
     },
     "cs": {
@@ -61,7 +63,8 @@
         "mapa",
         "pendencias",
         "consulta-cliente",
-        "consulta-carga"
+        "consulta-carga",
+        "treinamento"
       ]
     },
     "fechamento": {
@@ -72,7 +75,8 @@
         "motoristas",
         "variavel",
         "variavel-frota",
-        "consulta-carga"
+        "consulta-carga",
+        "treinamento"
       ]
     }
   }

@@ -409,3 +409,15 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 .nx-side-off .nx-side .nx-tg-a{display:none}
 .nx-side-off .nx-side .nx-side-tg::after{content:'Mostrar menu'}
 }
+/* Treinamento */
+.nx-al-atraso_saida{color:#B54708;background:#FEF0C7}
+.nx-treino-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:var(--cds-gap-md)}
+.nx-treino{background:#fff;border:1px solid var(--color-border-line);border-top:4px solid var(--nx-g2);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);display:flex;flex-direction:column;gap:8px}
+.nx-treino h3{margin:0;font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium)}
+.nx-treino p{margin:0;color:var(--cds-text-secondary);font-size:var(--cds-font-size-body);flex:1}
+.nx-treino .nx-btn{align-self:flex-start;margin-left:0}
+.nx-treino-tag{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--nx-g2);font-weight:var(--cds-font-weight-medium)}
+.nx-rotina{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;border-left:3px solid var(--nx-g2)}
+.nx-rotina li{display:grid;grid-template-columns:180px 1fr;gap:12px;padding:10px 14px;border-bottom:1px solid var(--color-border-line)}
+.nx-rotina li b{color:var(--nx-g1)}
+@media (max-width:640px){.nx-rotina li{grid-template-columns:1fr;gap:2px}}
