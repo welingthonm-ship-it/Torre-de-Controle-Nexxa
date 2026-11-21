@@ -245,7 +245,13 @@
 <button type='button' class='nx-chip' data-rt-q='all'>Todo o período</button>
 </div>
 </div>
-<p class='tc-note'>Rotas de <b data-draw='rtPerTxt'>—</b>.</p>
+<div class='rt-fim'><p class='tc-note'>Rotas de <b data-draw='rtPerTxt'>—</b>.</p>
+<button type='button' class='nx-btn' id='rt-fim-pdf' title='Resumo, situação das rotas, alertas, ocorrências e pendências por rota do período escolhido'>📄 Relatório de fechamento (PDF)</button>
+<span class='tc-sub rt-fim-msg rt-fim-gerando' hidden>Gerando o PDF…</span>
+<span class='rt-fim-msg rt-fim-ok' hidden>✓ Relatório baixado.</span>
+<span class='nx-al-err rt-fim-msg rt-fim-vazio' hidden>Os dados ainda estão carregando. Tente de novo em instantes.</span>
+<span class='nx-al-err rt-fim-msg rt-fim-erro' hidden>Não foi possível baixar o PDF neste navegador.</span>
+</div>
 <div class='tc-ctrl nx-rt-chips' style='margin:0 0 var(--cds-gap-sm)'>
 <div class='nx-per-quick' role='group' aria-label='Status da rota'>
 <button type='button' class='nx-chip' data-rt-st=''>Todos os status <b data-draw='rtStN' data-k='' data-source='rotas_dia'>—</b></button>
@@ -2194,6 +2200,7 @@ el.append(q); }
 <link rel='stylesheet' href='tv.css'>
 <script src='variavel.js'></script>
 <script src='pdfregras.js'></script>
+<script src='relfim.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>
 <script src='usuarios.js'></script>

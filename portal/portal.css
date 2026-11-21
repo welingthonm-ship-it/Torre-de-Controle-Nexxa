@@ -421,3 +421,7 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 .nx-rotina li{display:grid;grid-template-columns:180px 1fr;gap:12px;padding:10px 14px;border-bottom:1px solid var(--color-border-line)}
 .nx-rotina li b{color:var(--nx-g1)}
 @media (max-width:640px){.nx-rotina li{grid-template-columns:1fr;gap:2px}}
+.rt-fim{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 var(--cds-gap-sm)}
+.rt-fim .tc-note{margin:0;flex:1}
+.rt-fim .nx-btn{margin-left:0}
+.rt-fim-ok{color:var(--color-good,#1F7A3A);font-size:var(--cds-font-size-caption)}
