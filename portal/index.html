@@ -276,6 +276,8 @@ tr.nx-dn-hoje td{background:#F4F9F5;font-weight:var(--cds-font-weight-medium)}
 .nx-bx-all{font-weight:var(--cds-font-weight-medium);border-bottom:1px solid var(--color-border-line);padding-bottom:4px}
 .nx-al-quebrado_prox{color:#9A5B00;background:#FDF3E1}
 .nx-al-reprogramado{color:#175CD3;background:#EAF1FD}
+.nx-prev.nx-prev-reprog{color:#6941C6;background:#F4EBFF}
+.nx-prev-reprog-box{border-left-color:#175CD3}
 .nx-al-outro{color:#475467;background:#F2F4F7}
 tr.nx-al-row td{background:#FFFAF8}
 .nx-al-box:empty{display:none}
@@ -1983,6 +1985,19 @@ if (r.chegada_real) return {tipo: 'real', dt: r.chegada_real};
 { const bx = TC.bxDe(r); if (bx) return {tipo: 'real', dt: bx.entregue_em || ''}; }
 const cp = TC.tmin(r.chegada_prevista), sp = TC.tmin(r.saida_prevista);
 if (cp === null) return null;
+// Rota com alerta de reprogramação para o próximo dia: a entrega pendente passa para o dia seguinte ao alerta,
+// no mesmo horário planejado pelo roteirizador.
+{ const al = TC.alDe ? TC.alDe(r.data, r.rota) : null;
+if (al && TC.alProxDia && TC.alProxDia[al.tipo]) {
+const p2 = (n) => String(n).padStart(2, '0');
+const base = al.em ? new Date(al.em) : new Date(r.data + 'T12:00:00');
+const d0 = base.getFullYear() + '-' + p2(base.getMonth() + 1) + '-' + p2(base.getDate());
+let dia = d0 > r.data ? d0 : r.data;
+{ const t = new Date(dia + 'T12:00:00'); t.setDate(t.getDate() + 1); dia = t.getFullYear() + '-' + p2(t.getMonth() + 1) + '-' + p2(t.getDate()); }
+const hora = (String(r.chegada_prevista).split(' ')[1] || '08:00').slice(0, 5);
+const dt = dia + ' ' + hora, m = TC.tmin(dt);
+return {tipo: 'reprog', dt, m, perc: null, saida: '', ref: null, atraso: 0, desvio: 0, foraJanela: false, alerta: al};
+} }
 const perc = sp !== null && cp >= sp ? cp - sp : null;
 const idx = TC.cgIdx ? TC.cgIdx() : null, rs = (idx && idx.get(r.data + '|' + r.rota)) || [r];
 let saida = r.saida_cd || rs.map((x) => x.saida_cd).filter(Boolean).sort()[0] || '';
@@ -2014,6 +2029,7 @@ return {tipo, dt: TC.mstr(m), m, perc, saida, ref, atraso, desvio: Math.round(m 
 TC.prevTxt = (p) => {
 if (!p) return '—';
 if (p.tipo === 'real') return 'Chegou em ' + TC.fdt(p.dt);
+if (p.tipo === 'reprog') return 'Previsão ' + TC.fdt(p.dt) + ' · entrega reprogramada para o dia seguinte (' + ((TC.alTipos && TC.alTipos[p.alerta.tipo]) || 'alerta na rota') + '), no horário planejado' + (p.alerta.obs ? ' · ' + p.alerta.obs : '');
 const d = p.desvio, dv = Math.abs(d) < 5 ? 'no horário do roteirizador' : TC.fmin(Math.abs(d)) + (d > 0 ? ' depois' : ' antes') + ' do roteirizador';
 const base = p.tipo === 'parada' ? 'última parada atendida ' + TC.fdt(TC.mstr(p.ref.real)).slice(0, 5) + ' ' + TC.fdt(TC.mstr(p.ref.real)).slice(11) + ' (' + (p.ref.x.cliente || 'cliente') + ') + percurso planejado'
 : p.tipo === 'saida' ? 'saída real ' + TC.fdt(p.saida).slice(0, 5) + ' ' + TC.fdt(p.saida).slice(11) + ' + ' + TC.fmin(p.perc) + ' de percurso'
@@ -2030,8 +2046,8 @@ TC.prevCell = (td, r) => {
 const p = TC.prevAtual(r); td.replaceChildren();
 if (!p) { td.textContent = '—'; return; }
 if (p.tipo === 'real') { td.textContent = TC.fdt(p.dt); return; }
-const b = document.createElement('span'); b.className = 'nx-prev' + (p.foraJanela ? ' nx-prev-bad' : p.desvio > 15 ? ' nx-prev-warn' : '');
-b.textContent = 'prev. ' + TC.fdt(p.dt).slice(0, 5) + ' ' + TC.fdt(p.dt).slice(11);
+const b = document.createElement('span'); b.className = 'nx-prev' + (p.tipo === 'reprog' ? ' nx-prev-reprog' : p.foraJanela ? ' nx-prev-bad' : p.desvio > 15 ? ' nx-prev-warn' : '');
+b.textContent = (p.tipo === 'reprog' ? 'reprog. ' : 'prev. ') + TC.fdt(p.dt).slice(0, 5) + ' ' + TC.fdt(p.dt).slice(11);
 b.title = TC.prevTxt(p); td.append(b);
 };
 TC.cliRows = () => {
@@ -2350,6 +2366,7 @@ TC.tvArm();
 <script>
 (() => {
 const W = window;
+TC.alProxDia = {reprogramado: true, quebrado_prox: true};
 TC.alTipos = {sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência'};
 TC.al = W.__nxAl || new Map(); W.__nxAl = TC.al;
 TC.alPode = !!W.__nxAlPode;
@@ -3010,7 +3027,7 @@ dash.draw('entPrev', (el) => {
 const r = TC.entRow(), p = TC.prevAtual(r);
 el.replaceChildren();
 if (!p || p.tipo === 'real') return;
-const b = document.createElement('strong'); b.textContent = 'Previsão atualizada: ' + TC.fdt(p.dt);
+const b = document.createElement('strong'); b.textContent = (p.tipo === 'reprog' ? 'Entrega reprogramada · nova previsão: ' : 'Previsão atualizada: ') + TC.fdt(p.dt);
 const s = document.createElement('div'); s.className = 'tc-sub'; s.textContent = TC.prevTxt(p).split(' · ').slice(1).join(' · ');
 el.classList.toggle('nx-prev-bad', !!p.foraJanela); el.classList.toggle('nx-prev-warn', !p.foraJanela && p.desvio > 15);
 el.append(b, s);

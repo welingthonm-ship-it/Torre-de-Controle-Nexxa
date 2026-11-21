@@ -26,7 +26,7 @@ const prevDe = (r) => {
   const p = TC.prevAtual ? TC.prevAtual(r) : null;
   if (!p || !p.dt) return '—';
   const base = hm(p.dt);
-  const ex = p.tipo === 'patio' ? ' (ainda no CD)' : p.tipo === 'planejada' ? ' (roteirizador)' : '';
+  const ex = p.tipo === 'reprog' ? ' (reprogramada)' : p.tipo === 'patio' ? ' (ainda no CD)' : p.tipo === 'planejada' ? ' (roteirizador)' : '';
   return base + ex + (p.foraJanela ? ' · após a janela' : '');
 };
 const sitDe = (x) => (x.min > 0 ? 'Atrasada ' + TC.pdFmt(x.min) : TC.pdCls(x.r) === 'fut' ? 'Programada' : 'No prazo');
