@@ -568,16 +568,27 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 <section class='tc-sec' id='rotas-do-dia'>
 <h2>Rotas do dia</h2>
 <p class='tc-note'>Ordenadas pelas que têm mais entregas pendentes. Use a coluna Alerta para registrar uma divergência na rota, como carro quebrado ou reprogramação.</p>
-<div class='tc-ctrl' style='margin:0 0 var(--cds-gap-sm)'>
-<label>Status da rota
-<select class='dash-select tc-status' aria-label='Status da rota'>
-<option value=''>Todos</option>
-<option value='EmExecucao'>Em execução</option>
-<option value='StandBy'>Stand-by</option>
-<option value='Concluida'>Concluída</option>
-<option value='Baldeio'>Baldeio</option>
-</select>
-</label>
+<div class='nx-per' id='rt-filtros'>
+<div class='nx-per-dates'>
+<label>Data da rota de <input type='date' class='nx-input nx-date' data-draw='rtIn' data-k='de' aria-label='Data da rota inicial'></label>
+<label>até <input type='date' class='nx-input nx-date' data-draw='rtIn' data-k='ate' aria-label='Data da rota final'></label>
+</div>
+<div class='nx-per-quick' role='group' aria-label='Períodos rápidos das rotas'>
+<button type='button' class='nx-chip' data-rt-q='dia'>Dia monitorado</button>
+<button type='button' class='nx-chip' data-rt-q='7'>Últimos 7 dias</button>
+<button type='button' class='nx-chip' data-rt-q='mes'>Mês atual</button>
+<button type='button' class='nx-chip' data-rt-q='all'>Todo o período</button>
+</div>
+</div>
+<p class='tc-note'>Rotas de <b data-draw='rtPerTxt'>—</b>.</p>
+<div class='tc-ctrl nx-rt-chips' style='margin:0 0 var(--cds-gap-sm)'>
+<div class='nx-per-quick' role='group' aria-label='Status da rota'>
+<button type='button' class='nx-chip' data-rt-st=''>Todos os status <b data-draw='rtStN' data-k='' data-source='rotas_dia'>—</b></button>
+<button type='button' class='nx-chip' data-rt-st='EmExecucao'>Em execução <b data-draw='rtStN' data-k='EmExecucao' data-source='rotas_dia'>—</b></button>
+<button type='button' class='nx-chip' data-rt-st='StandBy'>Stand-by <b data-draw='rtStN' data-k='StandBy' data-source='rotas_dia'>—</b></button>
+<button type='button' class='nx-chip' data-rt-st='Concluida'>Concluída <b data-draw='rtStN' data-k='Concluida' data-source='rotas_dia'>—</b></button>
+<button type='button' class='nx-chip' data-rt-st='Baldeio'>Baldeio <b data-draw='rtStN' data-k='Baldeio' data-source='rotas_dia'>—</b></button>
+</div>
 <div class='nx-per-quick' role='group' aria-label='Rotas por situação das pendentes'>
 <button type='button' class='nx-chip' data-rt-cls=''>Todas as rotas</button>
 <button type='button' class='nx-chip' data-rt-cls='hoje'>Com entregas para hoje <b data-draw='rtClsN' data-k='hoje' data-source='entregas_cliente'>—</b></button>
@@ -588,6 +599,7 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 <div class='tc-tablewrap tc-scroll'>
 <table class='tc-table' data-source='rotas_dia' data-row-key='data,rota'>
 <thead><tr>
+<th data-field='data'>Data</th>
 <th data-field='rota'>Rota</th>
 <th data-field='transportadora'>Transportadora</th>
 <th data-field='status_rota'>Status</th>
@@ -607,7 +619,7 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 <tbody data-draw='rotas'></tbody>
 </table>
 </div>
-<p class='tc-empty' id='rotas-vazio' hidden>Nenhuma rota com esse status no dia.</p>
+<p class='tc-empty' id='rotas-vazio' hidden>Nenhuma rota com esses filtros no período.</p>
 </section>
 </section>
 <section id='pendentes' class='nx-tab tc' role='tabpanel' aria-label='Entregas pendentes' hidden>
@@ -1488,7 +1500,7 @@ T.saidaReal = (x) => { if (!x) return ''; const [d, h] = String(x).split(' '); c
 T.alDe = T.alDe || ((d, r) => (T.alBadge && window.__nxAl && window.__nxAl.get(d + '|' + r)) || null);
 T.dayFor = (el) => (el && el.closest && el.closest('[data-day="latest"]')) ? (T.days().slice(-1)[0] || null) : T.dayOf();
 T.dayOf = () => { const d = T.days(); if (!d.length) return null; return (T.day && d.includes(T.day)) ? T.day : d[d.length - 1]; };
-T.redraw = () => ['ocMotHead', 'ocMot', 'rtClsN', 'diaTxt', 'kpi', 'dia', 'vol', 'sla', 'rotas', 'ocor', 'pend', 'estrada', 'meter', 'cliDia', 'veicRotas', 'veicTempo', 'psDia', 'psTv'].forEach((n) => dash.draw(n));
+T.redraw = () => ['ocMotHead', 'ocMot', 'rtClsN', 'rtIn', 'rtStN', 'rtPerTxt', 'diaTxt', 'kpi', 'dia', 'vol', 'sla', 'rotas', 'ocor', 'pend', 'estrada', 'meter', 'cliDia', 'veicRotas', 'veicTempo', 'psDia', 'psTv'].forEach((n) => dash.draw(n));
 T.select = (d) => { T.day = d; T.redraw(); };
 T.status = '';
 T.stLabel = {EmExecucao: 'Em execução', StandBy: 'Stand-by', Concluida: 'Concluída', Baldeio: 'Baldeio'};
@@ -1529,15 +1541,17 @@ document.querySelectorAll('.tc-sw-warn').forEach((s) => { s.style.background = '
 document.querySelectorAll('.tc-status').forEach((s) => s.addEventListener('change', () => { TC.status = s.value; dash.draw('rotas'); dash.draw('rtClsN'); }));
 TC.rtCls = window.__nxRtCls || '';
 TC.rtChips = () => document.querySelectorAll('.nx-chip[data-rt-cls]').forEach((c) => c.classList.toggle('is-on', c.dataset.rtCls === TC.rtCls));
-document.querySelectorAll('.nx-chip[data-rt-cls]').forEach((c) => { c.onclick = () => { TC.rtCls = window.__nxRtCls = c.dataset.rtCls; TC.rtChips(); dash.draw('rotas'); }; });
+document.querySelectorAll('.nx-chip[data-rt-cls]').forEach((c) => { c.onclick = () => { TC.rtCls = window.__nxRtCls = c.dataset.rtCls; TC.rtChips(); if (TC.rtRedraw) TC.rtRedraw(); else dash.draw('rotas'); }; });
 TC.rtChips();
 dash.draw('rtClsN', (el) => {
 const g = dash.data('rotas_dia'), day = TC.dayFor(el), psm = TC.psPor(function rotaKey(x) { return x.data + '|' + x.rota; });
 if (g.status !== 'ok' || !day || !psm) { el.textContent = '—'; return; }
-const n = g.data.filter((r) => r.data === day && (!TC.status || r.status_rota === TC.status) && ((psm.get(r.data + '|' + r.rota) || {})[el.dataset.k] || 0) > 0).length;
+const noPer = TC.rtNoPer || ((r) => r.data === day);
+const n = g.data.filter((r) => noPer(r) && (!TC.status || r.status_rota === TC.status) && ((psm.get(r.data + '|' + r.rota) || {})[el.dataset.k] || 0) > 0).length;
 el.textContent = '(' + TC.fmt(n, 'int') + ')';
 });
 </script>
+<script src='rotasfiltro.js'></script>
 <script>
 (() => {
 const ymd = (s) => String(s || '').slice(0, 10).split('-').map(Number);
@@ -1663,14 +1677,15 @@ const vazio = document.getElementById('rotas-vazio');
 if (g.status !== 'ok' || !day) { tb.replaceChildren(); return; }
 const psm = TC.psPor(function rotaKey(x) { return x.data + '|' + x.rota; }) || new Map(), cl = TC.rtCls || '';
 const psn = (r) => cl ? ((psm.get(r.data + '|' + r.rota) || {})[cl] || 0) : 0;
-const rows = g.data.filter((r) => r.data === day && (!TC.status || r.status_rota === TC.status) && (!cl || psn(r) > 0))
-.sort((a, b) => (psn(b) - psn(a)) || (+b.pendentes - +a.pendentes) || (+a.pct_concluidas - +b.pct_concluidas) || (a.rota < b.rota ? -1 : 1));
+const noPer = TC.rtNoPer || ((r) => r.data === day);
+const rows = g.data.filter((r) => noPer(r) && (!TC.status || r.status_rota === TC.status) && (!cl || psn(r) > 0))
+.sort((a, b) => (psn(b) - psn(a)) || (+b.pendentes - +a.pendentes) || (+a.pct_concluidas - +b.pct_concluidas) || (a.data > b.data ? -1 : a.data < b.data ? 1 : 0) || (a.rota < b.rota ? -1 : 1));
 if (vazio) vazio.hidden = rows.length > 0;
 tb.replaceChildren(...rows.map((r) => {
 const tr = document.createElement('tr');
 tr.dataset.key = encodeURIComponent(r.data) + ',' + encodeURIComponent(r.rota);
 const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = txt; tr.append(c); return c; };
-td(r.rota); td(r.transportadora);
+td(TC.short(r.data)); td(r.rota); td(r.transportadora);
 const st = td(''); const b = document.createElement('span'); b.className = 'tc-badge ' + (TC.stClass[r.status_rota] || 'tc-b-oth'); b.textContent = TC.stLabel[r.status_rota] || r.status_rota; st.append(b);
 td(r.inicio || '—'); td(r.fim || '—');
 td(TC.fmt(r.entregas, 'int'), 'n'); td(TC.fmt(r.concluidas, 'int'), 'n'); td(TC.fmt(r.pendentes, 'int'), 'n');
