@@ -425,7 +425,7 @@
 </div>
 <div class='nx-cs-list' data-draw='csList' data-source='entregas_cliente'></div>
 <p class='tc-empty' id='cs-vazio' hidden>Nenhum alerta com clientes a informar.</p>
-<p class='tc-sub' id='cs-sem-perm' hidden>Só quem pode editar o portal consegue marcar clientes como informados.</p>
+<p class='tc-sub' id='cs-sem-perm' hidden>Seu acesso não permite marcar clientes como informados.</p>
 <details class='tc-foot' id='cs-como'>
 <summary>Como funciona</summary>
 <dl>
@@ -2162,7 +2162,8 @@ TC.alRedraw();
 }, () => {});
 });
 const user = W.claude && W.claude.use ? W.claude.use('user').catch(() => null) : Promise.resolve(null);
-user.then((u) => (u ? u.canEdit() : false)).then((can) => { W.__nxAlPode = TC.alPode = !!can; dash.draw('rotas'); dash.draw('entAlerta'); dash.draw('csList'); dash.draw('logoList'); }).catch(() => {});
+// Na versão web, qualquer login com acesso registra alertas e marca clientes informados (o banco confere a permissão).
+user.then((u) => (u ? (u.podeAlertas ? u.podeAlertas() : u.canEdit()) : false)).then((can) => { W.__nxAlPode = TC.alPode = !!can; dash.draw('rotas'); dash.draw('entAlerta'); dash.draw('csList'); dash.draw('logoList'); }).catch(() => {});
 })();
 dash.draw('alBxList', (box) => {
 const e = TC.alEdit, g = dash.data('entregas_cliente');

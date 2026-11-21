@@ -210,6 +210,7 @@
   const user = {
     id: async () => AUTH.uid, me: async () => ({id: AUTH.uid, name: AUTH.usuario}),
     isOwner: () => AUTH.editor, canEdit: () => AUTH.editor, can: () => AUTH.editor,
+    podeAlertas: () => (SB ? AUTH.uid !== 'local' : AUTH.editor),
     profiles: async (ids) => Object.fromEntries((ids || []).map((i) => {
       const u = DOCS.get('usuarios/' + i); return [i, {id: i, name: (u && u.usuario) || (i === AUTH.uid ? AUTH.usuario : ''), avatarUrl: ''}];
     })),
