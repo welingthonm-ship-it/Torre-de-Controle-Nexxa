@@ -14,7 +14,32 @@ TC.ocFaltas = () => {
     .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : String(a.rota).localeCompare(String(b.rota))));
 };
 TC.ocPend = () => { const f = TC.ocFaltas(); return f ? f.filter((r) => !TC.ocVal.has(chave(r.id))) : null; };
-const redraw = () => ['ocValN', 'ocValList', 'ocValTot'].forEach((n) => dash.draw(n));
+const redraw = () => ['ocValN', 'ocValList', 'ocValTot', 'ocValFN', 'ocValTr'].forEach((n) => dash.draw(n));
+// Filtros da lista: situação, transportadora e busca (rota, motorista, cliente)
+TC.ocF = W.__nxOcF || {sit: 'pend', tr: '', q: ''}; W.__nxOcF = TC.ocF;
+const F = TC.ocF;
+const sitDe = (r) => { const v = TC.ocVal.get(chave(r.id)); return !v ? 'pend' : v.resultado === 'comprovada' ? 'comp' : 'nc'; };
+const passa = (r, ign) => (ign === 'sit' || F.sit === 'todas' || (F.sit === 'val' ? sitDe(r) !== 'pend' : sitDe(r) === F.sit))
+  && (ign === 'tr' || !F.tr || r.transportadora === F.tr)
+  && (!F.q || [r.rota, r.motorista, r.cliente, r.codigo, r.placa].join(' ').toLowerCase().includes(F.q.toLowerCase()));
+const chips = () => document.querySelectorAll('.nx-chip[data-ov-sit]').forEach((c) => c.classList.toggle('is-on', c.dataset.ovSit === F.sit));
+document.querySelectorAll('.nx-chip[data-ov-sit]').forEach((c) => { c.onclick = () => { F.sit = c.dataset.ovSit; chips(); redraw(); }; });
+chips();
+document.querySelectorAll('#ov-busca').forEach((i) => { i.value = F.q; i.oninput = () => { F.q = i.value.trim(); dash.draw('ocValList'); dash.draw('ocValFN'); }; });
+dash.draw('ocValFN', (el) => {
+  const f = TC.ocFaltas(); if (!f) { el.textContent = '—'; return; }
+  const k = el.dataset.k;
+  const n = f.filter((r) => passa(r, 'sit') && (k === 'todas' || (k === 'val' ? sitDe(r) !== 'pend' : sitDe(r) === k))).length;
+  el.textContent = '(' + n + ')';
+});
+dash.draw('ocValTr', (sel) => {
+  const f = TC.ocFaltas() || [];
+  const ts = Array.from(new Set(f.map((r) => r.transportadora).filter(Boolean))).sort();
+  sel.replaceChildren(new Option('Todas as transportadoras', ''), ...ts.map((t) => new Option(t, t)));
+  if (F.tr && !ts.includes(F.tr)) F.tr = '';
+  sel.value = F.tr;
+  sel.onchange = () => { F.tr = sel.value; redraw(); };
+});
 const db = () => (W.claude && W.claude.use ? W.claude.use('db').catch(() => null) : Promise.resolve(null));
 if (!W.__nxOcValSub) {
   W.__nxOcValSub = true;
@@ -45,7 +70,9 @@ dash.draw('ocValList', (box) => {
   const f = TC.ocFaltas();
   if (!f) { box.replaceChildren(); return; }
   if (!f.length) { box.replaceChildren(el('p', 'tc-empty', 'Nenhuma falta registrada nos últimos ' + TC.ocValDias + ' dias.')); return; }
-  const pend = f.filter((r) => !TC.ocVal.has(chave(r.id))), ok = f.filter((r) => TC.ocVal.has(chave(r.id)));
+  const vis = f.filter((r) => passa(r));
+  if (!vis.length) { box.replaceChildren(el('p', 'tc-empty', 'Nenhuma falta com esses filtros.')); return; }
+  const pend = vis.filter((r) => !TC.ocVal.has(chave(r.id))), ok = vis.filter((r) => TC.ocVal.has(chave(r.id)));
   const card = (r) => {
     const v = TC.ocVal.get(chave(r.id));
     const c = el('div', 'nx-ov' + (v ? ' is-ok' : ' is-pend'));
