@@ -2,33 +2,37 @@
 <link rel='stylesheet' href='portal.css'>
 <div class='tc nx'>
 <nav class='nx-tabs nx-side' role='tablist' aria-label='Abas'>
+<button type='button' class='nx-side-tg' id='nx-side-tg' aria-expanded='true' aria-controls='nx-side-itens' title='Recolher ou mostrar o menu'><span class='nx-tg-ico' aria-hidden='true'>«</span><span class='nx-tg-ico2' aria-hidden='true'>»</span> <span class='nx-lab nx-tg-a'>Recolher menu</span></button>
+<div class='nx-side-itens' id='nx-side-itens'>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>1</span> Monitoramento</div>
-<button type='button' role='tab' data-tab='monitoramento' aria-selected='true' data-nome='Resumo do dia'><span class='nx-n'>1.1</span> <span class='nx-lab'>Resumo do dia</span></button>
-<button type='button' role='tab' data-tab='rotas' aria-selected='false' data-nome='Rotas do dia'><span class='nx-n'>1.2</span> <span class='nx-lab'>Rotas do dia</span></button>
-<button type='button' role='tab' data-tab='pendentes' aria-selected='false' data-nome='Entregas pendentes'><span class='nx-n'>1.3</span> <span class='nx-lab'>Entregas pendentes</span></button>
-<button type='button' role='tab' data-tab='prazos' aria-selected='false' data-nome='Prazos D+N'><span class='nx-n'>1.4</span> <span class='nx-lab'>Prazos D+N</span></button>
-<button type='button' role='tab' data-tab='mapa' aria-selected='false' data-nome='Mapa de entregas'><span class='nx-n'>1.5</span> <span class='nx-lab'>Mapa de entregas</span></button>
-<button type='button' role='tab' data-tab='pendencias' aria-selected='false' data-nome='Ocorrências do dia'><span class='nx-n'>1.6</span> <span class='nx-lab'>Ocorrências do dia</span></button>
+<button type='button' role='tab' data-tab='monitoramento' aria-selected='true' data-nome='Resumo do dia' title='Resumo do dia'><span class='nx-n'>1.1</span> <span class='nx-lab'>Resumo do dia</span></button>
+<button type='button' role='tab' data-tab='rotas' aria-selected='false' data-nome='Rotas do dia' title='Rotas do dia'><span class='nx-n'>1.2</span> <span class='nx-lab'>Rotas do dia</span></button>
+<button type='button' role='tab' data-tab='pendentes' aria-selected='false' data-nome='Entregas pendentes' title='Entregas pendentes'><span class='nx-n'>1.3</span> <span class='nx-lab'>Entregas pendentes</span></button>
+<button type='button' role='tab' data-tab='prazos' aria-selected='false' data-nome='Prazos D+N' title='Prazos D+N'><span class='nx-n'>1.4</span> <span class='nx-lab'>Prazos D+N</span></button>
+<button type='button' role='tab' data-tab='mapa' aria-selected='false' data-nome='Mapa de entregas' title='Mapa de entregas'><span class='nx-n'>1.5</span> <span class='nx-lab'>Mapa de entregas</span></button>
+<button type='button' role='tab' data-tab='pendencias' aria-selected='false' data-nome='Ocorrências do dia' title='Ocorrências do dia'><span class='nx-n'>1.6</span> <span class='nx-lab'>Ocorrências do dia</span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>2</span> Rankings</div>
-<button type='button' role='tab' data-tab='transportadoras' aria-selected='false' data-nome='Ranking de transportadoras'><span class='nx-n'>2.1</span> <span class='nx-lab'>Transportadoras</span></button>
-<button type='button' role='tab' data-tab='motoristas' aria-selected='false' data-nome='Ranking de motoristas'><span class='nx-n'>2.2</span> <span class='nx-lab'>Motoristas</span></button>
+<button type='button' role='tab' data-tab='transportadoras' aria-selected='false' data-nome='Ranking de transportadoras' title='Ranking de transportadoras'><span class='nx-n'>2.1</span> <span class='nx-lab'>Transportadoras</span></button>
+<button type='button' role='tab' data-tab='motoristas' aria-selected='false' data-nome='Ranking de motoristas' title='Ranking de motoristas'><span class='nx-n'>2.2</span> <span class='nx-lab'>Motoristas</span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>3</span> Variável</div>
-<button type='button' role='tab' data-tab='variavel' aria-selected='false' data-nome='Variável - Transportadoras'><span class='nx-n'>3.1</span> <span class='nx-lab'>Transportadoras</span></button>
-<button type='button' role='tab' data-tab='variavel-frota' aria-selected='false' data-nome='Variável - Frota'><span class='nx-n'>3.2</span> <span class='nx-lab'>Frota</span></button>
+<button type='button' role='tab' data-tab='variavel' aria-selected='false' data-nome='Variável - Transportadoras' title='Variável - Transportadoras'><span class='nx-n'>3.1</span> <span class='nx-lab'>Transportadoras</span></button>
+<button type='button' role='tab' data-tab='variavel-frota' aria-selected='false' data-nome='Variável - Frota' title='Variável - Frota'><span class='nx-n'>3.2</span> <span class='nx-lab'>Frota</span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>4</span> Rastreio</div>
-<button type='button' role='tab' data-tab='consulta-cliente' aria-selected='false' data-nome='Rastreio - Consulta cliente'><span class='nx-n'>4.1</span> <span class='nx-lab'>Consulta cliente</span></button>
-<button type='button' role='tab' data-tab='consulta-carga' aria-selected='false' data-nome='Rastreio - Consulta carga'><span class='nx-n'>4.2</span> <span class='nx-lab'>Consulta carga</span></button>
+<button type='button' role='tab' data-tab='consulta-cliente' aria-selected='false' data-nome='Rastreio - Consulta cliente' title='Rastreio - Consulta cliente'><span class='nx-n'>4.1</span> <span class='nx-lab'>Consulta cliente</span></button>
+<button type='button' role='tab' data-tab='consulta-carga' aria-selected='false' data-nome='Rastreio - Consulta carga' title='Rastreio - Consulta carga'><span class='nx-n'>4.2</span> <span class='nx-lab'>Consulta carga</span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>5</span> Customer Service</div>
-<button type='button' role='tab' data-tab='cs' aria-selected='false' class='nx-cs-tabbtn' data-nome='Customer Service - Alertas'><span class='nx-n'>5.1</span> <span class='nx-lab'>Alertas</span> <span class='nx-cs-count' data-draw='csTab'></span></button>
+<button type='button' role='tab' data-tab='cs' aria-selected='false' class='nx-cs-tabbtn' data-nome='Customer Service - Alertas' title='Customer Service - Alertas'><span class='nx-n'>5.1</span> <span class='nx-lab'>Alertas</span> <span class='nx-cs-count' data-draw='csTab'></span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>6</span> Histórico</div>
-<button type='button' role='tab' data-tab='historico' aria-selected='false' data-nome='Histórico'><span class='nx-n'>6.1</span> <span class='nx-lab'>Histórico</span></button>
+<button type='button' role='tab' data-tab='historico' aria-selected='false' data-nome='Histórico' title='Histórico'><span class='nx-n'>6.1</span> <span class='nx-lab'>Histórico</span></button>
+</div>
 </div>
 </nav>
+<script src='menu.js'></script>
 <header class='nx-banner' id='topo'>
 <div class='nx-toprow'>
 <div class='nx-brand'>
