@@ -39,7 +39,7 @@ if (g.status !== 'ok' || !R) return null;
 const q = TC.pdNorm(P.busca);
 return g.data.filter((r) => !TC.isEnt(r) && (TC.soHoje ? TC.prevHoje(r) : (r.data >= R.de && r.data <= R.ate)) && (!P.transp || r.transportadora === P.transp)
 && (!q || TC.pdNorm(r.cliente + ' ' + r.rota + ' ' + r.cidade + ' ' + r.codigo + ' ' + (r.motorista || '') + ' ' + (r.placa || '')).includes(q)))
-.map((r) => ({r, min: TC.pdAtraso(r), al: TC.alDe ? TC.alDe(r.data, r.rota) : null}))
+.map((r) => ({r, min: TC.pdAtraso(r), al: TC.alDaEntrega ? TC.alDaEntrega(r) : (TC.alDe ? TC.alDe(r.data, r.rota) : null)}))
 .filter((x) => !P.atraso || (P.atraso === 'atrasadas' ? x.min > 0 : P.atraso === 'prazo' ? x.min <= 0 : x.min > (+P.atraso) * 1440))
 .filter((x) => !P.dn || TC.dnOk(x.r, P.dn))
 .filter((x) => !P.cls || TC.pdCls(x.r) === P.cls)

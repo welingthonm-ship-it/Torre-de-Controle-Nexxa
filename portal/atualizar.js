@@ -428,7 +428,7 @@ window.nxTransform = (function () {
       .sort(function (a, b) { return a.data < b.data ? -1 : a.data > b.data ? 1 : 0; });
   }
 
-  var TIPOS = { sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', atraso_saida: 'Saída com atraso – possíveis atrasos nas entregas', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência' };
+  var TIPOS = { sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', excesso_volumes: 'Pedido reprogramado – excesso de volumes', atraso_saida: 'Saída com atraso – possíveis atrasos nas entregas', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência' };
   // Baixa manual: entrega apontada como entregue pelo monitoramento quando o app do motorista falhou.
   function baixaManual(rows, alertas) {
     var A = alertas || {};
@@ -447,7 +447,7 @@ window.nxTransform = (function () {
     function get(r) { return A[String(r.data) + '|' + String(r.rota)] || null; }
     function lbl(a) { return TIPOS[a.tipo] || a.label || 'Alerta'; }
     (tables.entregas_cliente || []).forEach(function (r, i, arr) {
-      var a = r.entregue !== 'SIM' ? get(r) : null;
+      var a = r.entregue !== 'SIM' ? (A['id:' + r.data + '|' + r.rota + '|' + r.id] || get(r)) : null;
       arr[i] = Object.assign({}, r, { alerta: a ? lbl(a) : '', alerta_obs: a ? (a.obs || '') : '', alerta_em: a ? (a.em || '') : '' });
       if (a) n++;
     });
@@ -456,7 +456,7 @@ window.nxTransform = (function () {
       if (a) rotas[r.data + '|' + r.rota] = 1;
     });
     (tables.pendentes || []).forEach(function (r, i, arr) {
-      var a = get(r); arr[i] = Object.assign({}, r, { alerta: a ? lbl(a) : '', alerta_obs: a ? (a.obs || '') : '' });
+      var a = A['id:' + r.data + '|' + r.rota + '|' + r.id] || get(r); arr[i] = Object.assign({}, r, { alerta: a ? lbl(a) : '', alerta_obs: a ? (a.obs || '') : '' });
     });
     return { entregas: n, rotas: Object.keys(rotas).length };
   }
@@ -489,7 +489,7 @@ window.NXU = (function () {
   async function alertas() {
     var db = await use('db'); if (!db) return {};
     var snap = await db.collection('alertas').get(), m = {};
-    snap.docs.forEach(function (d) { var a = d.data(); if (a && a.data && a.rota) m[a.data + '|' + a.rota] = a; });
+    snap.docs.forEach(function (d) { var a = d.data(); if (!a || !a.data || !a.rota) return; if (a.escopo === 'clientes') { (a.ids || []).forEach(function (id) { var k = 'id:' + a.data + '|' + a.rota + '|' + id; if (!m[k] || String(a.em || '') > String(m[k].em || '')) m[k] = a; }); } else m[a.data + '|' + a.rota] = a; });
     return m;
   }
 

@@ -48,7 +48,7 @@ const r = rows[0], el = (t, c, x) => { const e = document.createElement(t); if (
 const top = el('div'), nome = el('div', 'nx-cli-nome', 'Carga ' + r.rota);
 const b = el('span', 'tc-badge ' + (TC.stClass[r.status_rota] || 'tc-b-oth'), TC.stLabel[r.status_rota] || r.status_rota || '—');
 nome.append(' ', b);
-const al = TC.alDe(r.data, r.rota); if (al) nome.append(' ', TC.alBadge(al));
+const al = TC.alDaEntrega ? TC.alDaEntrega(r) : TC.alDe(r.data, r.rota); if (al) nome.append(' ', TC.alBadge(al));
 const meta = el('div', 'nx-cg-meta');
 [['Data da carga', TC.dlabel(r.data)], ['Transportadora', r.transportadora || '—'], ['Motorista', r.motorista || '—'], ['Placa', r.placa || '—'], ['Depósito', r.deposito || '—']].forEach(([k, v]) => { const sp = el('span', null, k + ': '); sp.append(el('b', null, v)); meta.append(sp); });
 top.append(nome, meta); box.append(top);

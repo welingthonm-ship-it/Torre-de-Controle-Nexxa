@@ -5,7 +5,7 @@ const pct = (v) => (v === null || v === undefined || v === '' ? '—' : (+v).toF
 const int = (v) => TC.fmt(n0(v), 'int');
 const hm = (dt) => { const s = TC.fdt(dt); return s.length > 10 ? s.slice(0, 5) + ' ' + s.slice(11) : s; };
 
-const CURTO = {sinistro: 'Sinistro (carga roubada)', socorro: 'Carro quebrado – socorro', quebrado_prox: 'Quebrado – segue amanhã', reprogramado: 'Reprogramado p/ amanhã', atraso_saida: 'Saída com atraso', baixa_manual: 'Baixa manual', outro: 'Outra divergência'};
+const CURTO = {sinistro: 'Sinistro (carga roubada)', socorro: 'Carro quebrado – socorro', quebrado_prox: 'Quebrado – segue amanhã', reprogramado: 'Reprogramado p/ amanhã', excesso_volumes: 'Reprog. – excesso de volumes', atraso_saida: 'Saída com atraso', baixa_manual: 'Baixa manual', outro: 'Outra divergência'};
 const alNome = (t) => CURTO[t] || (TC.alTipos && TC.alTipos[t]) || 'Alerta';
 
 // Relatório de fechamento enxuto: indicadores, pontos de atenção, alertas e pendências por rota (uma linha por rota).
@@ -27,16 +27,18 @@ TC.relFimDoc = () => {
   const porRota = new Map();
   pend.forEach((r) => { const k = r.data + '|' + r.rota; if (!porRota.has(k)) porRota.set(k, []); porRota.get(k).push(r); });
   const rotaInfo = new Map(rotas.map((r) => [r.data + '|' + r.rota, r]));
-  const csMap = new Map(((TC.csDados && TC.csDados().lista) || []).map((x) => [x.a.data + '|' + x.a.rota, x]));
+  const csL = (TC.csDados && TC.csDados().lista) || [];
+  const csMap = new Map(csL.filter((x) => x.a.escopo !== 'clientes').map((x) => [x.a.data + '|' + x.a.rota, x]));
+  const csDe = (a) => csL.find((x) => x.a === a) || (a.escopo === 'clientes' ? null : csMap.get(a.data + '|' + a.rota));
   const G = Array.from(porRota.entries()).map(([k, it]) => {
-    const r0 = it[0], al = TC.alDe(r0.data, r0.rota), atr = it.filter((r) => TC.pdCls(r) === 'atr').length;
+    const r0 = it[0], al = TC.alDe(r0.data, r0.rota) || it.map((r) => TC.alDaEntrega(r)).find(Boolean), atr = it.filter((r) => TC.pdCls(r) === 'atr').length;
     const prevs = it.map((r) => TC.prevAtual(r)).filter((p) => p && p.dt).sort((a, b) => (a.dt < b.dt ? -1 : 1));
     const p0 = prevs[0];
     return {k, r0, it, al, atr, prev: p0 ? hm(p0.dt) + (p0.tipo === 'reprog' ? ' (reprog.)' : p0.standby ? ' (no CD)' : '') : '—'};
   }).sort((a, b) => (!!b.al - !!a.al) || (b.atr - a.atr) || (b.it.length - a.it.length));
-  const als = Array.from(TC.al.values()).filter((a) => a && dentro(a.data) && a.tipo !== 'baixa_manual').sort((a, b) => String(a.em || '').localeCompare(String(b.em || '')));
+  const als = Array.from(TC.al.values()).concat(Array.from((TC.alCli || new Map()).values())).filter((a) => a && dentro(a.data) && a.tipo !== 'baixa_manual').sort((a, b) => String(a.em || '').localeCompare(String(b.em || '')));
   const baixas = Array.from(TC.al.values()).filter((a) => a && dentro(a.data) && a.tipo === 'baixa_manual').length;
-  const semInfo = als.reduce((s, a) => s + ((csMap.get(a.data + '|' + a.rota) || {}).informar || 0), 0);
+  const semInfo = als.reduce((s, a) => s + ((csDe(a) || {}).informar || 0), 0);
 
   const B = [];
   B.push({t: 'p', s: 'Fechamento de ' + periodo + ' · gerado em ' + new Date().toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) + ' com a última atualização do portal.'});
@@ -48,7 +50,7 @@ TC.relFimDoc = () => {
   const at = [];
   if (st.StandBy) at.push(int(st.StandBy) + (st.StandBy === 1 ? ' rota não expedida' : ' rotas não expedidas') + ' (stand-by, em separação/carregamento).');
   if (cls.atr) at.push(int(cls.atr) + (cls.atr === 1 ? ' entrega atrasada' : ' entregas atrasadas') + ' em ' + G.filter((g) => g.atr).length + ' rotas.');
-  if (als.length) at.push(als.length + (als.length === 1 ? ' rota com alerta' : ' rotas com alerta') + (semInfo ? ': ' + int(semInfo) + (semInfo === 1 ? ' cliente ainda não informado' : ' clientes ainda não informados') + ' pelo Customer Service.' : ', todos os clientes já informados.'));
+  if (als.length) at.push(als.length + (als.length === 1 ? ' alerta registrado' : ' alertas registrados') + (semInfo ? ': ' + int(semInfo) + (semInfo === 1 ? ' cliente ainda não informado' : ' clientes ainda não informados') + ' pelo Customer Service.' : ', todos os clientes já informados.'));
   if (baixas) at.push(baixas + (baixas === 1 ? ' rota com baixa manual' : ' rotas com baixa manual') + ' (falha no app do motorista).');
   B.push({t: 'h1', s: 'Pontos de atenção'});
   if (at.length) at.forEach((x) => B.push({t: 'li', s: x}));
@@ -61,8 +63,8 @@ TC.relFimDoc = () => {
   // Alertas
   B.push({t: 'h1', s: 'Alertas registrados (' + als.length + ')'});
   if (als.length) B.push({t: 'table', cols: [{h: 'Rota', w: 15}, {h: 'Transportadora', w: 22}, {h: 'Alerta', w: 26}, {h: 'Observação', w: 37}, {h: 'Pendentes', w: 13}, {h: 'Informados', w: 14}],
-    rows: als.map((a) => { const k = a.data + '|' + a.rota, cs = csMap.get(k), n = (porRota.get(k) || []).length;
-      return [a.rota + (R.umDia ? '' : ' (' + TC.fdt(a.data).slice(0, 5) + ')'), (rotaInfo.get(k) || {}).transportadora || '—', alNome(a.tipo), a.obs || '—', int(n), cs ? int(cs.informados) + ' de ' + int(cs.peds.length) : '—']; })});
+    rows: als.map((a) => { const k = a.data + '|' + a.rota, cs = csDe(a), n = a.escopo === 'clientes' ? (porRota.get(k) || []).filter((r) => (a.ids || []).includes(r.id)).length : (porRota.get(k) || []).length;
+      return [a.rota + (R.umDia ? '' : ' (' + TC.fdt(a.data).slice(0, 5) + ')'), (rotaInfo.get(k) || {}).transportadora || '—', alNome(a.tipo) + (a.escopo === 'clientes' ? ' (' + (a.ids || []).length + ' cliente' + ((a.ids || []).length === 1 ? '' : 's') + ')' : ''), a.obs || '—', int(n), cs ? int(cs.informados) + ' de ' + int(cs.peds.length) : '—']; })});
   else B.push({t: 'p', s: 'Nenhum alerta registrado.'});
 
   // Pendências por rota

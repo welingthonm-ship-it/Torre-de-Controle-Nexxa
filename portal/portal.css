@@ -456,3 +456,27 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 .nx-upd-hdr b{color:var(--nx-g1,#1F5132);font-weight:var(--cds-font-weight-medium)}
 .nx-ov-tipo{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;background:#FEF0C7;color:#93370D;border-radius:4px;padding:2px 6px}
 .nx-guia-bar{display:flex;justify-content:flex-end;margin:0 0 6px}
+/* Alertas por cliente, excesso de volumes, prioridades e aviso de janela */
+.nx-al-excesso_volumes{color:#7A2E0E;background:#FDEAD7}
+.nx-al-escopo{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:6px 10px;display:flex;flex-wrap:wrap;gap:4px 16px;margin:0}
+.nx-al-escopo legend{font-size:var(--cds-font-size-caption);padding:0 4px}
+.nx-al-escopo label{display:flex;flex-direction:row;align-items:center;gap:6px;font-weight:normal;white-space:nowrap}
+.nx-al-escopo input{margin:0}
+.nx-al-cliex:empty{display:none}
+.nx-al-cliex{display:flex;flex-direction:column;gap:4px;margin-top:var(--cds-gap-sm);font-size:var(--cds-font-size-caption)}
+.nx-al-cli-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.nx-al-clin{display:block;font-size:11px;color:#7A2E0E;margin-top:2px}
+.nx-al-cell .nx-al-btn+.nx-al-btn{margin-left:4px}
+tr.nx-click{cursor:pointer}
+tr.nx-click:hover td{background:#F5F8FF}
+.nx-jan-aviso{display:block;margin-top:3px;font-size:11px;font-weight:600;color:#B42318;white-space:nowrap}
+tr.nx-jan-row td{background:#FFF4F2}
+.nx-jan-banner:empty{display:none}
+.nx-jan-banner{margin:0 0 var(--cds-gap-sm);padding:8px 12px;border-left:4px solid #B42318;background:#FEF3F2;color:#912018;border-radius:6px;font-weight:600}
+.nx-prior{border:1px solid var(--color-border-line);border-left:4px solid #DC6803;border-radius:var(--cds-radius);padding:8px 12px;margin:0 0 var(--cds-gap-md);background:var(--color-bg-card,#fff)}
+.nx-prior summary{cursor:pointer}
+.nx-prior-wrap.tc-scroll{max-height:320px}
+.nx-prior-tag{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.nx-prior-repo{color:#fff;background:#DC6803}
+.nx-prior-reprog{color:#175CD3;background:#EAF1FD}
+.nx-prior-ant{color:#B54708;background:#FEF0C7}
