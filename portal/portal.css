@@ -452,3 +452,5 @@ tr.nx-cs-ok td{background:#F3FAF5;color:var(--color-fg-muted)}
 .nx-ov-filtros input{min-width:240px}
 .nx-cs-table .nx-cs-sel{width:34px;text-align:center}
 .nx-cs-table .nx-cs-sel input{width:16px;height:16px;cursor:pointer}
+.nx-upd-hdr{font-size:var(--cds-font-size-caption);color:var(--cds-text-secondary);background:var(--nx-soft,#EEF6F0);border:1px solid var(--color-border-line);border-radius:999px;padding:4px 12px;white-space:nowrap;align-self:center}
+.nx-upd-hdr b{color:var(--nx-g1,#1F5132);font-weight:var(--cds-font-weight-medium)}

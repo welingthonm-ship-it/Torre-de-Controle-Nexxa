@@ -578,7 +578,7 @@ window.NXU = (function () {
   };
 
   // Permissão: esconde o envio para quem só visualiza.
-  use('user').then(function (user) { return user ? user.canEdit() : null; }).then(function (can) {
+  use('user').then(function (user) { return user ? (user.podeAtualizar ? user.podeAtualizar() : user.canEdit()) : null; }).then(function (can) {
     U.can = can;
     document.querySelectorAll('#nx-upd-file').forEach(function (i) { i.disabled = can === false; });
     document.querySelectorAll('#upd-envio-box').forEach(function (b) { b.hidden = can === false; });
