@@ -1723,8 +1723,9 @@ if (r.chegada_real) return {tipo: 'real', dt: r.chegada_real};
 { const bx = TC.bxDe(r); if (bx) return {tipo: 'real', dt: bx.entregue_em || ''}; }
 const cp = TC.tmin(r.chegada_prevista), sp = TC.tmin(r.saida_prevista);
 if (cp === null) return null;
-// Rota com alerta de reprogramação para o próximo dia: a entrega pendente passa para o dia seguinte ao alerta,
-// no mesmo horário planejado pelo roteirizador.
+// Rota com alerta de reprogramação para o próximo dia: a entrega pendente passa para o dia seguinte ao alerta.
+// Previsão = nova saída do CD (TC.reprogSaida, 06:00) + tempo de percurso planejado até o cliente,
+// nunca antes do início da janela do cliente (evita previsões de madrugada).
 { const al = TC.alDe ? TC.alDe(r.data, r.rota) : null;
 if (al && TC.alProxDia && TC.alProxDia[al.tipo]) {
 const p2 = (n) => String(n).padStart(2, '0');
@@ -1732,9 +1733,17 @@ const base = al.em ? new Date(al.em) : new Date(r.data + 'T12:00:00');
 const d0 = base.getFullYear() + '-' + p2(base.getMonth() + 1) + '-' + p2(base.getDate());
 let dia = d0 > r.data ? d0 : r.data;
 { const t = new Date(dia + 'T12:00:00'); t.setDate(t.getDate() + 1); dia = t.getFullYear() + '-' + p2(t.getMonth() + 1) + '-' + p2(t.getDate()); }
-const hora = (String(r.chegada_prevista).split(' ')[1] || '08:00').slice(0, 5);
-const dt = dia + ' ' + hora, m = TC.tmin(dt);
-return {tipo: 'reprog', dt, m, perc: null, saida: '', ref: null, atraso: 0, desvio: 0, foraJanela: false, alerta: al};
+const saidaH = TC.reprogSaida || '06:00';
+const msai = TC.tmin(dia + ' ' + saidaH);
+// percurso desde a saída planejada da rota (primeira saída entre as paradas) até este cliente
+const ix0 = TC.cgIdx ? TC.cgIdx() : null, rs0 = (ix0 && ix0.get(r.data + '|' + r.rota)) || [r];
+const sps = rs0.map((x) => TC.tmin(x.saida_prevista)).filter((v) => v !== null);
+const sRota = sps.length ? Math.min(...sps) : sp;
+let perc = sRota !== null && cp >= sRota ? cp - sRota : 0; if (perc > 18 * 60) perc = 0;
+let m = msai + perc;
+const jm = String(r.janela || '').match(/(\d{1,2}):(\d{2})/);
+if (jm) { const ji = TC.tmin(dia + ' ' + jm[1].padStart(2, '0') + ':' + jm[2]); if (ji !== null && m < ji) m = ji; }
+return {tipo: 'reprog', dt: TC.mstr(m), m, perc, saida: dia + ' ' + saidaH, ref: null, atraso: 0, desvio: 0, foraJanela: false, alerta: al};
 } }
 const perc = sp !== null && cp >= sp ? cp - sp : null;
 const idx = TC.cgIdx ? TC.cgIdx() : null, rs = (idx && idx.get(r.data + '|' + r.rota)) || [r];
@@ -1769,7 +1778,7 @@ return {tipo, dt: TC.mstr(m), m, perc, saida, ref, atraso, desvio: Math.round(m 
 TC.prevTxt = (p) => {
 if (!p) return '—';
 if (p.tipo === 'real') return 'Chegou em ' + TC.fdt(p.dt);
-if (p.tipo === 'reprog') return 'Previsão ' + TC.fdt(p.dt) + ' · entrega reprogramada para o dia seguinte (' + ((TC.alTipos && TC.alTipos[p.alerta.tipo]) || 'alerta na rota') + '), no horário planejado' + (p.alerta.obs ? ' · ' + p.alerta.obs : '');
+if (p.tipo === 'reprog') return 'Previsão ' + TC.fdt(p.dt) + ' · entrega reprogramada para o dia seguinte (' + ((TC.alTipos && TC.alTipos[p.alerta.tipo]) || 'alerta na rota') + '): nova saída do CD às ' + String(p.saida).slice(11, 16) + ' + ' + TC.fmin(Math.round(p.perc || 0)) + ' de percurso planejado, sem antecipar o início da janela do cliente' + (p.alerta.obs ? ' · ' + p.alerta.obs : '');
 const d = p.desvio, dv = Math.abs(d) < 5 ? 'no horário do roteirizador' : TC.fmin(Math.abs(d)) + (d > 0 ? ' depois' : ' antes') + ' do roteirizador';
 const base = p.tipo === 'parada' ? 'última parada atendida ' + TC.fdt(TC.mstr(p.ref.real)).slice(0, 5) + ' ' + TC.fdt(TC.mstr(p.ref.real)).slice(11) + ' (' + (p.ref.x.cliente || 'cliente') + ') + percurso planejado'
 : p.tipo === 'saida' ? 'saída real ' + TC.fdt(p.saida).slice(0, 5) + ' ' + TC.fdt(p.saida).slice(11) + ' + ' + TC.fmin(p.perc) + ' de percurso'
