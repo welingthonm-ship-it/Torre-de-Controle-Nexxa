@@ -2320,7 +2320,18 @@ return tr;
 (() => {
 const W = window;
 TC.csFiltro = W.__nxCsF || 'abertos';
-TC.csInf = (a, id) => (a && a.informados && a.informados[id]) || null;
+// Cada cliente informado é um registro próprio (coleção "informados"): vários usuários marcam ao mesmo tempo sem apagar o que o outro marcou.
+TC.csInfMap = W.__nxCsInf || new Map(); W.__nxCsInf = TC.csInfMap;
+TC.csInfKey = (a, id) => (TC.alId(a.data, a.rota) + '__' + id).replace(/[^A-Za-z0-9_\-.~:@+]/g, '~');
+TC.csSel = W.__nxCsSel || new Set(); W.__nxCsSel = TC.csSel;
+TC.csInf = (a, id) => (a && TC.csInfMap.get(TC.csInfKey(a, id))) || (a && a.informados && a.informados[id]) || null;
+if (!W.__nxCsInfSub) {
+W.__nxCsInfSub = true;
+(W.claude && W.claude.use ? W.claude.use('db').catch(() => null) : Promise.resolve(null)).then((d) => {
+if (!d) return;
+d.collection('informados').onSnapshot((snap) => { TC.csInfMap.clear(); snap.docs.forEach((x) => TC.csInfMap.set(x.id, x.data())); ['csTab', 'csN', 'csList'].forEach((n) => dash.draw(n)); }, () => {});
+});
+}
 TC.csDados = () => {
 const g = dash.data('entregas_cliente');
 const rows = g.status === 'ok' ? g.data : [];
@@ -2340,16 +2351,20 @@ TC.csMarcar = async (a, ids, valor, btn) => {
 if (btn) btn.disabled = true;
 try {
 const d = await db(); if (!d) throw new Error('sem db');
-const ref = d.doc('alertas/' + TC.alId(a.data, a.rota));
 if (valor) {
-const por = await uid(), em = new Date().toISOString(), inf = {};
-ids.forEach((id) => { inf[id] = {em, por}; });
-await ref.update({informados: inf});
+const por = await uid(), em = new Date().toISOString();
+for (const id of ids) {
+await d.doc('informados/' + TC.csInfKey(a, id)).set({alerta: TC.alId(a.data, a.rota), data: a.data, rota: a.rota, pedido: id, em, por});
+TC.csSel.delete(TC.csInfKey(a, id));
+}
 } else {
-const snap = await ref.get(); if (!snap.exists) return;
-const doc = JSON.parse(JSON.stringify(snap.data())); const inf = doc.informados || {};
-ids.forEach((id) => { delete inf[id]; }); doc.informados = inf;
-await ref.set(doc);
+for (const id of ids) { if (TC.csInfMap.has(TC.csInfKey(a, id))) await d.doc('informados/' + TC.csInfKey(a, id)).delete(); }
+// registros antigos, gravados dentro do próprio alerta
+if (ids.some((id) => a.informados && a.informados[id])) {
+const ref = d.doc('alertas/' + TC.alId(a.data, a.rota));
+const snap = await ref.get();
+if (snap.exists) { const doc = JSON.parse(JSON.stringify(snap.data())); const inf = doc.informados || {}; ids.forEach((id) => { delete inf[id]; }); doc.informados = inf; await ref.set(doc); }
+}
 }
 } catch (e) { document.querySelectorAll('#cs-sem-perm').forEach((p) => { p.hidden = false; }); }
 if (btn) btn.disabled = false;
@@ -2383,17 +2398,42 @@ head.append(el('h3', null, 'Rota ' + a.rota + ' · ' + TC.fdt(a.data)), TC.alBad
 const p0 = peds[0];
 head.append(el('span', 'nx-cs-meta', (p0 ? p0.transportadora + (p0.motorista ? ' · ' + p0.motorista : '') + ' · ' : '') + 'alerta registrado em ' + quando(a.em) + ' · ' + peds.length + (peds.length === 1 ? ' pedido pendente' : ' pedidos pendentes')));
 if (TC.alPode && informar) { const all = el('button', 'nx-btn', 'Marcar todos como informados'); all.type = 'button'; all.onclick = () => TC.csMarcar(a, peds.filter((p) => !TC.csInf(a, p.id)).map((p) => p.id), true, all); head.append(all); }
+const selDe = () => peds.filter((p) => TC.csSel.has(TC.csInfKey(a, p.id)));
+let selBt = null;
+if (TC.alPode && informar) {
+selBt = el('button', 'nx-btn nx-btn-sec', ''); selBt.type = 'button';
+const upd = () => { const n = selDe().filter((p) => !TC.csInf(a, p.id)).length; selBt.textContent = 'Marcar selecionados como informados (' + n + ')'; selBt.disabled = !n; };
+selBt.onclick = () => TC.csMarcar(a, selDe().filter((p) => !TC.csInf(a, p.id)).map((p) => p.id), true, selBt);
+selBt.__upd = upd; upd(); head.append(selBt);
+}
 if (TC.alPode) { const ed = el('button', 'nx-al-btn', 'Editar alerta'); ed.type = 'button'; ed.onclick = () => TC.alAbrir(a.data, a.rota); head.append(ed); }
 card.append(head);
 if (a.obs) card.append(el('div', 'nx-cs-obs', a.obs));
 if (!peds.length) { card.append(el('div', 'tc-sub', 'Nenhum pedido pendente nesta rota no último relatório.')); box.append(card); return; }
 const wrap = el('div', 'tc-tablewrap'); const t = el('table', 'tc-table nx-cs-table');
 const th = el('thead'); const hr = el('tr');
+const thSel = el('th', 'nx-cs-sel');
+if (TC.alPode && informar) {
+const ca = el('input'); ca.type = 'checkbox'; ca.setAttribute('aria-label', 'Selecionar todos os clientes ainda não informados');
+const abertos = peds.filter((p) => !TC.csInf(a, p.id));
+ca.checked = abertos.length > 0 && abertos.every((p) => TC.csSel.has(TC.csInfKey(a, p.id)));
+ca.onchange = () => { abertos.forEach((p) => { const k = TC.csInfKey(a, p.id); if (ca.checked) TC.csSel.add(k); else TC.csSel.delete(k); }); tb.querySelectorAll('input[type=checkbox]').forEach((c) => { if (!c.disabled) c.checked = ca.checked; }); if (selBt) selBt.__upd(); };
+thSel.append(ca);
+}
+hr.append(thSel);
 ['Situação do aviso', 'Seq.', 'Cód. cliente', 'Cliente', 'Cidade', 'Chegada prevista', 'Janela', ''].forEach((h) => hr.append(el('th', null, h)));
 th.append(hr); const tb = el('tbody');
 peds.forEach((p) => {
 const inf = TC.csInf(a, p.id);
 const tr = el('tr', inf ? 'nx-cs-ok' : 'nx-cs-pisca');
+const sc = el('td', 'nx-cs-sel');
+if (TC.alPode && informar) {
+const cb = el('input'); cb.type = 'checkbox'; cb.setAttribute('aria-label', 'Selecionar ' + (p.cliente || p.codigo));
+const k = TC.csInfKey(a, p.id);
+if (inf) { cb.checked = true; cb.disabled = true; } else { cb.checked = TC.csSel.has(k); cb.onchange = () => { if (cb.checked) TC.csSel.add(k); else TC.csSel.delete(k); if (selBt) selBt.__upd(); }; }
+sc.append(cb);
+}
+tr.append(sc);
 const st = el('td'); st.append(el('span', 'nx-cs-st ' + (inf ? 'b' : 'a'), inf ? 'Informado em ' + quando(inf.em) : 'Informar cliente'));
 tr.append(st, el('td', 'n', p.seq_planejada), el('td', 'nx-cod', p.codigo), el('td', null, p.cliente), el('td', null, p.cidade + ' / ' + p.uf), el('td', null, TC.fdt(p.chegada_prevista)), el('td', null, p.janela || '—'));
 const ac = el('td');

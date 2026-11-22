@@ -48,6 +48,10 @@ drop policy if exists "validacoes" on public.docs;
 create policy "validacoes" on public.docs for all to authenticated
   using (public.tem_acesso() and path like 'validacoes/%')
   with check (public.tem_acesso() and path like 'validacoes/%');
+drop policy if exists "informados" on public.docs;
+create policy "informados" on public.docs for all to authenticated
+  using (public.tem_acesso() and path like 'informados/%')
+  with check (public.tem_acesso() and path like 'informados/%');
 drop policy if exists "dados pessoais" on public.docs;
 create policy "dados pessoais" on public.docs for all to authenticated
   using (path like 'data/users/' || auth.uid()::text || '/%')
