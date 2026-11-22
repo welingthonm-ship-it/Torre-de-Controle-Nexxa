@@ -480,3 +480,6 @@ tr.nx-jan-row td{background:#FFF4F2}
 .nx-prior-repo{color:#fff;background:#DC6803}
 .nx-prior-reprog{color:#175CD3;background:#EAF1FD}
 .nx-prior-ant{color:#B54708;background:#FEF0C7}
+.nx-ov-filtros input.nx-date{min-width:0}
+.nx-ov-filtros .nx-per-dates{align-items:flex-end;gap:8px 12px}
+.nx-ov-filtros label{align-items:flex-start}

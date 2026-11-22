@@ -626,7 +626,7 @@
 </section>
 <section class='tc-sec' id='ocorrencias-validacao'>
 <h2>Validação das ocorrências</h2>
-<p class='tc-note'>Toda <b>falta</b>, <b>avaria</b> ou <b>devolução total</b> registrada nos últimos 3 dias de rota precisa ser validada pelo monitoramento: confirmar se a carga foi <b>bipada</b> e se existe o <b>vídeo do carregamento</b> que prova ao motorista que o produto foi carregado. Com bipagem e vídeo, a ocorrência fica comprovada como responsabilidade do motorista/transportadora. Ocorrências de qualidade não entram. Enquanto houver ocorrência sem validação, a aba 1.6 pisca em laranja. <b data-draw='ocValTot' data-source='entregas_cliente'>—</b></p>
+<p class='tc-note'>Toda <b>falta</b>, <b>avaria</b> ou <b>devolução total</b> registrada nos últimos 3 dias de rota precisa ser validada pelo monitoramento: confirmar se a carga foi <b>bipada</b> e se existe o <b>vídeo do carregamento</b> que prova ao motorista que o produto foi carregado. Com bipagem e vídeo, a ocorrência fica comprovada como responsabilidade do motorista/transportadora. Ocorrências de qualidade não entram. Enquanto houver ocorrência sem validação, a aba 1.6 pisca em laranja. Use as datas para ver ocorrências de outros dias. <b data-draw='ocValTot' data-source='entregas_cliente'>—</b></p>
 <div class='tc-ctrl nx-ov-filtros'>
 <div class='nx-per-quick' role='group' aria-label='Situação da validação'>
 <button type='button' class='nx-chip' data-ov-sit='pend'>Aguardando <b data-draw='ocValFN' data-k='pend' data-source='entregas_cliente'>—</b></button>
@@ -634,6 +634,11 @@
 <button type='button' class='nx-chip' data-ov-sit='nc'>Não comprovadas <b data-draw='ocValFN' data-k='nc' data-source='entregas_cliente'>—</b></button>
 <button type='button' class='nx-chip' data-ov-sit='val'>Todas validadas <b data-draw='ocValFN' data-k='val' data-source='entregas_cliente'>—</b></button>
 <button type='button' class='nx-chip' data-ov-sit='todas'>Todas <b data-draw='ocValFN' data-k='todas' data-source='entregas_cliente'>—</b></button>
+</div>
+<div class='nx-per-dates'>
+<label>Data da rota de <input type='date' class='nx-input nx-date' id='ov-de' aria-label='Data da rota inicial das ocorrências'></label>
+<label>até <input type='date' class='nx-input nx-date' id='ov-ate' aria-label='Data da rota final das ocorrências'></label>
+<button type='button' class='nx-chip' id='ov-3d'>Últimos 3 dias</button>
 </div>
 <label>Transportadora <select class='dash-select' data-draw='ocValTr' data-source='entregas_cliente' aria-label='Transportadora'></select></label>
 <label>Buscar <input type='search' class='nx-input' id='ov-busca' placeholder='Rota, motorista, placa ou cliente' aria-label='Buscar falta por rota, motorista, placa ou cliente'></label>

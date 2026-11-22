@@ -14,10 +14,17 @@ TC.ocFaltas = () => {
   return g.data.filter((r) => TC.ocValTipos.includes(r.ocorrencia) && r.data >= lim)
     .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : String(a.rota).localeCompare(String(b.rota))));
 };
+// Lista da tela: com período escolhido, todas as ocorrências desses dias; sem período, os últimos 3 dias.
+TC.ocLista = () => {
+  if (!F.de && !F.ate) return TC.ocFaltas();
+  const g = dash.data('entregas_cliente'); if (g.status !== 'ok') return null;
+  return g.data.filter((r) => TC.ocValTipos.includes(r.ocorrencia) && (!F.de || r.data >= F.de) && (!F.ate || r.data <= F.ate))
+    .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : String(a.rota).localeCompare(String(b.rota))));
+};
 TC.ocPend = () => { const f = TC.ocFaltas(); return f ? f.filter((r) => !TC.ocVal.has(chave(r.id))) : null; };
 const redraw = () => ['ocValN', 'ocValList', 'ocValTot', 'ocValFN', 'ocValTr'].forEach((n) => dash.draw(n));
 // Filtros da lista: situação, transportadora e busca (rota, motorista, cliente)
-TC.ocF = W.__nxOcF || {sit: 'pend', tr: '', q: ''}; W.__nxOcF = TC.ocF;
+TC.ocF = W.__nxOcF || {sit: 'pend', tr: '', q: '', de: '', ate: ''}; W.__nxOcF = TC.ocF;
 const F = TC.ocF;
 const sitDe = (r) => { const v = TC.ocVal.get(chave(r.id)); return !v ? 'pend' : v.resultado === 'comprovada' ? 'comp' : 'nc'; };
 const passa = (r, ign) => (ign === 'sit' || F.sit === 'todas' || (F.sit === 'val' ? sitDe(r) !== 'pend' : sitDe(r) === F.sit))
@@ -26,15 +33,19 @@ const passa = (r, ign) => (ign === 'sit' || F.sit === 'todas' || (F.sit === 'val
 const chips = () => document.querySelectorAll('.nx-chip[data-ov-sit]').forEach((c) => c.classList.toggle('is-on', c.dataset.ovSit === F.sit));
 document.querySelectorAll('.nx-chip[data-ov-sit]').forEach((c) => { c.onclick = () => { F.sit = c.dataset.ovSit; chips(); redraw(); }; });
 chips();
+const datas = () => { document.querySelectorAll('#ov-de').forEach((i) => { i.value = F.de; }); document.querySelectorAll('#ov-ate').forEach((i) => { i.value = F.ate; }); document.querySelectorAll('#ov-3d').forEach((c) => c.classList.toggle('is-on', !F.de && !F.ate)); };
+document.querySelectorAll('#ov-de, #ov-ate').forEach((i) => { i.onchange = () => { F[i.id === 'ov-de' ? 'de' : 'ate'] = i.value; datas(); redraw(); }; });
+document.querySelectorAll('#ov-3d').forEach((c) => { c.onclick = () => { F.de = ''; F.ate = ''; datas(); redraw(); }; });
+datas();
 document.querySelectorAll('#ov-busca').forEach((i) => { i.value = F.q; i.oninput = () => { F.q = i.value.trim(); dash.draw('ocValList'); dash.draw('ocValFN'); }; });
 dash.draw('ocValFN', (el) => {
-  const f = TC.ocFaltas(); if (!f) { el.textContent = '—'; return; }
+  const f = TC.ocLista(); if (!f) { el.textContent = '—'; return; }
   const k = el.dataset.k;
   const n = f.filter((r) => passa(r, 'sit') && (k === 'todas' || (k === 'val' ? sitDe(r) !== 'pend' : sitDe(r) === k))).length;
   el.textContent = '(' + n + ')';
 });
 dash.draw('ocValTr', (sel) => {
-  const f = TC.ocFaltas() || [];
+  const f = TC.ocLista() || [];
   const ts = Array.from(new Set(f.map((r) => r.transportadora).filter(Boolean))).sort();
   sel.replaceChildren(new Option('Todas as transportadoras', ''), ...ts.map((t) => new Option(t, t)));
   if (F.tr && !ts.includes(F.tr)) F.tr = '';
@@ -59,7 +70,7 @@ dash.draw('ocValN', (el) => {
   const b = el.closest('button'); if (b) b.classList.toggle('nx-blink', n > 0);
 });
 dash.draw('ocValTot', (el) => {
-  const f = TC.ocFaltas(); if (!f) { el.textContent = '—'; return; }
+  const f = TC.ocLista(); if (!f) { el.textContent = '—'; return; }
   const p = f.filter((r) => !TC.ocVal.has(chave(r.id))).length;
   el.textContent = p ? p + (p === 1 ? ' ocorrência aguardando validação' : ' ocorrências aguardando validação') + ' · ' + (f.length - p) + ' validada' + (f.length - p === 1 ? '' : 's') : 'Todas as ' + f.length + ' ocorrências validadas';
 });
@@ -68,9 +79,9 @@ const selSN = (lbl) => { const s = el('select', 'dash-select'); s.setAttribute('
 const RES = {comprovada: 'Ocorrência comprovada: carga bipada e vídeo do carregamento. Responsabilidade do motorista/transportadora.', nao_comprovada: 'Ocorrência não comprovada: sem bipagem ou sem vídeo do carregamento.'};
 TC.ocValRes = RES;
 dash.draw('ocValList', (box) => {
-  const f = TC.ocFaltas();
+  const f = TC.ocLista();
   if (!f) { box.replaceChildren(); return; }
-  if (!f.length) { box.replaceChildren(el('p', 'tc-empty', 'Nenhuma falta, avaria ou devolução total nos últimos ' + TC.ocValDias + ' dias.')); return; }
+  if (!f.length) { box.replaceChildren(el('p', 'tc-empty', 'Nenhuma falta, avaria ou devolução total ' + (F.de || F.ate ? 'no período escolhido.' : 'nos últimos ' + TC.ocValDias + ' dias.'))); return; }
   const vis = f.filter((r) => passa(r));
   if (!vis.length) { box.replaceChildren(el('p', 'tc-empty', 'Nenhuma ocorrência com esses filtros.')); return; }
   const pend = vis.filter((r) => !TC.ocVal.has(chave(r.id))), ok = vis.filter((r) => TC.ocVal.has(chave(r.id)));
