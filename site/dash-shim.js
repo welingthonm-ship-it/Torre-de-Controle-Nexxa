@@ -212,7 +212,8 @@
     // Editor "master" (perfil admin) vê todas as telas e a de usuários; outros editores só atualizam os dados.
     isOwner: () => AUTH.editor && (!SB || AUTH.perfil === 'admin'), canEdit: () => AUTH.editor && (!SB || AUTH.perfil === 'admin'), can: () => AUTH.editor,
     podeAtualizar: () => AUTH.editor,
-    podeAlertas: () => (SB ? AUTH.uid !== 'local' : AUTH.editor),
+    // Inserir e editar alertas: só logins com permissão de atualizar (master e monitoramento). Marcar cliente informado vale para todos.
+    podeAlertas: () => AUTH.editor,
     profiles: async (ids) => Object.fromEntries((ids || []).map((i) => {
       const u = DOCS.get('usuarios/' + i); return [i, {id: i, name: (u && u.usuario) || (i === AUTH.uid ? AUTH.usuario : ''), avatarUrl: ''}];
     })),
