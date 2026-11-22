@@ -26,10 +26,7 @@ TC.popMonitoramentoBlocos = () => [
 {t: 'li', s: '2. Cargas e pedidos não entregues nos dias anteriores (1.3 Entregas pendentes → Atrasadas).'},
 {t: 'li', s: '3. Cargas com alerta "Reprogramado para o próximo dia" (pendentes do dia anterior reprogramadas).'},
 {t: 'box', bold: true, s: 'Prioridade sem previsão de saída até as ' + H.limiteAlerta + ' precisa de alerta e aviso ao Customer Service.'},
-{t: 'h2', s: 'Regras rápidas'},
-{t: 'li', s: 'Alerta sempre com o motivo e a nova data na observação.'},
-{t: 'li', s: 'Baixa manual só para entrega confirmada com falha no app.'},
-{t: 'li', s: 'Devolução só com autorização do suporte.'},
+{t: 'p', s: 'Regras rápidas: alerta sempre com o motivo e a nova data na observação · baixa manual só para entrega confirmada com falha no app · devolução só com autorização do suporte.'},
 Object.assign({}, ciencia, {rotulo: 'Nome do colaborador'})
 ];
 

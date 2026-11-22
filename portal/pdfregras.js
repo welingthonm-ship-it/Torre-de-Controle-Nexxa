@@ -74,8 +74,20 @@ linha(cols.map((c) => c.h), true); b.rows.forEach((r) => linha(r, false)); y -= 
 }
 else if (b.t === 'gap') y -= b.h || 8;
 else if (b.t === 'page') { if (y < PH - 120) novaPagina(); }
-else if (b.t === 'assin') { precisa(52); T(M, y, b.s || '', 9.6, false, TXT); y -= 30; [[b.rotulo || 'Nome do motorista ou ajudante', M, 240], ['Data', M + 260, 80], ['Assinatura', M + 360, CW - 360]].forEach(([r, x, w]) => { L(x, y, x + w, y, '#5B6B62', 0.7); T(x, y - 12, r, 8.5, false, MUT); }); y -= 30; }
+else if (b.t === 'assin') {
+precisa(112); T(M, y, b.s || '', 9.6, false, TXT); y -= 20;
+const half = (CW - 24) / 2, y0 = y;
+[['Treinamento aplicado por', 'Nome de quem aplicou', M], ['Treinamento recebido por', b.rotulo || 'Nome do motorista ou ajudante', M + half + 24]].forEach(([tt, rot, x]) => {
+y = y0; T(x, y, tt, 9.6, true, G1); y -= 26;
+L(x, y, x + half, y, '#5B6B62', 0.7); T(x, y - 11, rot, 8, false, MUT); y -= 30;
+L(x, y, x + half * 0.62, y, '#5B6B62', 0.7); T(x, y - 11, 'Assinatura', 8, false, MUT);
+L(x + half * 0.68, y, x + half, y, '#5B6B62', 0.7); T(x + half * 0.68, y - 11, 'Data', 8, false, MUT);
 });
+y -= 22;
+}
+});
+// fecho de todos os PDFs
+precisa(24); y -= 4; L(M, y + 10, M + CW, y + 10, '#C9D6CE', 0.5); T(M, y - 4, 'Elaborado por Welingthon Arraes - Gerência Transporte', 9, true, G1); y -= 20;
 pages.push(ops);
 // monta o arquivo
 const objs = [];
@@ -202,7 +214,7 @@ TC.varBaixarRegras = async (btn, k) => {
 const dl = await (window.claude && window.claude.use ? window.claude.use('downloads').catch(() => null) : null);
 if (!dl) return;
 if (btn) btn.disabled = true;
-try { const d = TC.varRegrasDoc(k); const blob = await TC.pdfRegras(d); const c = TC.varCalc(); await dl.save({filename: 'Regras Variavel ' + (k === 'frota' ? 'Frota' : 'Transportadoras') + (c ? ' ' + TC.varMesNome(c.mes) : '') + '.pdf', data: blob}); }
+try { const d = TC.varRegrasDoc(k); if (!d.blocos.some((b) => b.t === 'assin')) d.blocos.push({t: 'assin', s: 'Declaro que recebi o treinamento destas regras e estou ciente delas.', rotulo: k === 'frota' ? 'Nome do motorista' : 'Nome do responsável da transportadora'}); const blob = await TC.pdfRegras(d); const c = TC.varCalc(); await dl.save({filename: 'Regras Variavel ' + (k === 'frota' ? 'Frota' : 'Transportadoras') + (c ? ' ' + TC.varMesNome(c.mes) : '') + '.pdf', data: blob}); }
 catch (e) { if (btn) btn.title = e && e.code === 'declined' ? 'Download cancelado' : 'Não foi possível gerar o PDF'; }
 if (btn) btn.disabled = false;
 };
