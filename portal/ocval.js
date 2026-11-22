@@ -5,20 +5,22 @@ const W = window;
 TC.ocVal = W.__nxOcVal || new Map(); W.__nxOcVal = TC.ocVal;
 TC.ocValDias = 3;   // ocorrências dos últimos 3 dias de rota precisam de validação
 TC.ocValTipos = ['Falta', 'Avaria', 'Devolução Total'];   // tipos que o monitoramento valida
+// Ocorrências zeradas: data de rota até o corte não entram mais na validação (nem no contador laranja).
+TC.ocCorte = '2026-11-20';
 const chave = (id) => String(id).replace(/[^A-Za-z0-9_\-.~:@+]/g, '~');
 const d0 = (iso, n) => { const t = new Date(iso + 'T12:00:00'); t.setDate(t.getDate() - n); return t.toISOString().slice(0, 10); };
 TC.ocFaltas = () => {
   const g = dash.data('entregas_cliente'); if (g.status !== 'ok') return null;
   let ult = ''; g.data.forEach((r) => { if (r.data > ult) ult = r.data; });
   const lim = d0(ult || '2000-01-01', TC.ocValDias - 1);
-  return g.data.filter((r) => TC.ocValTipos.includes(r.ocorrencia) && r.data >= lim)
+  return g.data.filter((r) => TC.ocValTipos.includes(r.ocorrencia) && r.data >= lim && !(TC.ocCorte && r.data <= TC.ocCorte))
     .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : String(a.rota).localeCompare(String(b.rota))));
 };
 // Lista da tela: com período escolhido, todas as ocorrências desses dias; sem período, os últimos 3 dias.
 TC.ocLista = () => {
   if (!F.de && !F.ate) return TC.ocFaltas();
   const g = dash.data('entregas_cliente'); if (g.status !== 'ok') return null;
-  return g.data.filter((r) => TC.ocValTipos.includes(r.ocorrencia) && (!F.de || r.data >= F.de) && (!F.ate || r.data <= F.ate))
+  return g.data.filter((r) => TC.ocValTipos.includes(r.ocorrencia) && !(TC.ocCorte && r.data <= TC.ocCorte) && (!F.de || r.data >= F.de) && (!F.ate || r.data <= F.ate))
     .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : String(a.rota).localeCompare(String(b.rota))));
 };
 TC.ocPend = () => { const f = TC.ocFaltas(); return f ? f.filter((r) => !TC.ocVal.has(chave(r.id))) : null; };
