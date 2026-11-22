@@ -591,7 +591,7 @@
 </section>
 </section>
 <section id='historico' class='nx-tab tc' role='tabpanel' aria-label='Histórico' hidden>
-<p class='tc-lead'>Evolução diária de entregas e do nível de serviço. Clique em um dia nos gráficos para escolhê-lo nas outras abas; o dia escolhido aparece destacado.</p>
+<p class='tc-lead'>Evolução diária de entregas, do nível de serviço e da aderência ao app. Clique em um dia nos gráficos para escolhê-lo nas outras abas; o dia escolhido aparece destacado.</p>
 <div class='tc-grid2'>
 <section class='tc-sec' id='historico-volume'>
 <h2>Histórico diário de entregas</h2>
@@ -606,6 +606,14 @@
 <div class='tc-chart' data-draw='sla' data-source='resumo_dia'></div>
 </section>
 </div>
+<section class='tc-sec' id='historico-app'>
+<h2>Histórico de aderência ao app</h2>
+<p class='tc-note'>Percentual diário das entregas baixadas no app do motorista a até 500 m do cliente. Escolha uma transportadora para comparar com o geral. No quadro, verde a partir de 90%, amarelo de 70% a 90% e vermelho abaixo de 70%; as piores transportadoras da última semana aparecem primeiro.</p>
+<div class='tc-ctrl'><label>Comparar <select class='dash-select' data-draw='haTr' data-source='transportadoras_dia' aria-label='Transportadora para comparar'></select></label></div>
+<div class='tc-legend'><span><i class='tc-sw' data-sw='0'></i>Geral</span><span class='nx-ha-sel' hidden><i class='tc-sw' style='background:#DC6803'></i><b data-draw='haSelNome' data-source='transportadoras_dia'></b></span></div>
+<div class='tc-chart' data-draw='haChart' data-source='transportadoras_dia'></div>
+<div class='tc-tablewrap nx-ha-wrap' data-draw='haTab' data-source='transportadoras_dia'></div>
+</section>
 </section>
 <section id='pendencias' class='nx-tab tc' role='tabpanel' aria-label='Ocorrências do dia' hidden>
 <div class='tc-ctrl nx-daybar'>
@@ -2323,6 +2331,7 @@ el.append(q); }
 <script src='pdfregras.js'></script>
 <script src='relfim.js'></script>
 <script src='rtprior.js'></script>
+<script src='histapp.js'></script>
 <script src='ocval.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>

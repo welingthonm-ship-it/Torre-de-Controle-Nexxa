@@ -483,3 +483,12 @@ tr.nx-jan-row td{background:#FFF4F2}
 .nx-ov-filtros input.nx-date{min-width:0}
 .nx-ov-filtros .nx-per-dates{align-items:flex-end;gap:8px 12px}
 .nx-ov-filtros label{align-items:flex-start}
+/* Histórico: aderência ao app */
+#historico-app{margin-top:var(--cds-gap-md)}
+.nx-ha-wrap{margin-top:var(--cds-gap-md);overflow-x:auto}
+.nx-ha-tab td.nx-ha-ok{color:#067647;font-weight:600}
+.nx-ha-tab td.nx-ha-med{color:#B54708;font-weight:600}
+.nx-ha-tab td.nx-ha-ruim{color:#B42318;font-weight:600;background:#FEF3F2}
+.nx-ha-tab td.nx-ha-up{color:#067647}
+.nx-ha-tab td.nx-ha-down{color:#B42318}
+.nx-ha-tab tr.nx-ha-total td{font-weight:700;border-top:2px solid var(--color-border-line);background:#FFF8DB}
