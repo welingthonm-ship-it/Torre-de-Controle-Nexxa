@@ -66,7 +66,7 @@ TC.pdRelDoc = () => {
       rows: g.itens.map((x) => [String(x.r.seq_planejada || '—'), (x.r.codigo ? x.r.codigo + ' · ' : '') + (x.r.cliente || ''), (x.r.cidade || '') + (x.r.uf ? '/' + x.r.uf : ''), x.r.janela || '—', TC.fdt(TC.alvoData(x.r)).slice(0, 5), prevDe(x.r), sitDe(x)])});
   });
   const stamp = agora.toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'});
-  return {titulo: 'Entregas pendentes · alertas e previsão', sub: 'Gerado em ' + stamp, rodape: 'W ARRAES - Gerência Transporte · CNPJ 70.070.143/0001-55', blocos, n: rows.length, rotas: rotas.length};
+  return {titulo: 'Entregas pendentes · alertas e previsão', sub: 'Gerado em ' + stamp, rodape: 'W ARRAES - Gerência Transporte', blocos, n: rows.length, rotas: rotas.length};
 };
 
 dash.draw('pdRelTransp', (sel) => {

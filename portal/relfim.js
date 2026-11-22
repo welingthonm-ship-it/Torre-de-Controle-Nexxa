@@ -77,7 +77,7 @@ TC.relFimDoc = () => {
     B.push({t: 'table', cols: [{h: 'Data', w: 14}, {h: 'Rotas', w: 11}, {h: 'Entregas', w: 13}, {h: '% concl.', w: 13}, {h: 'Pend.', w: 11}, {h: 'Ocorr.', w: 11}, {h: 'SLA', w: 12}, {h: 'On Time', w: 13}, {h: 'OTIF', w: 12}],
       rows: dias.map((r) => [TC.fdt(r.data).slice(0, 5), int(r.rotas), int(r.entregas), pct(r.pct_concluidas), int(r.pendentes), int(r.ocorrencias), pct(r.sla_janela_pct), pct(r.on_time_pct), pct(r.otif_pct)])});
   }
-  return {titulo: 'Fechamento do dia', sub: periodo, rodape: 'W ARRAES - Gerência Transporte · CNPJ 70.070.143/0001-55', blocos: B, de: R.de, ate: R.ate};
+  return {titulo: 'Fechamento do dia', sub: periodo, rodape: 'W ARRAES - Gerência Transporte', blocos: B, de: R.de, ate: R.ate};
 };
 
 const msg = (k) => document.querySelectorAll('.rt-fim-msg').forEach((e) => { e.hidden = !e.classList.contains(k); });

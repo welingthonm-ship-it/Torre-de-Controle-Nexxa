@@ -153,7 +153,7 @@ const defs = [
 {t: 'li', s: 'Período: entregas das rotas do mês de apuração (data da carga).'},
 {t: 'gap', h: 10},
 {t: 'p', s: 'Documento gerado pelo portal Torre de Controle - Transporte em ' + new Date().toLocaleString('pt-BR') + '. As regras podem ser revistas pela Gerência de Transporte.'}];
-const base = {rodape: 'W ARRAES - Gerência Transporte · CNPJ 70.070.143/0001-55', sub: 'Regras vigentes' + (mesN ? ' · apuração ' + mesN : '')};
+const base = {rodape: 'W ARRAES - Gerência Transporte', sub: 'Regras vigentes' + (mesN ? ' · apuração ' + mesN : '')};
 if (k === 'frota') return Object.assign(base, {titulo: 'Variável da Frota · NFS e Comfrio', blocos: [
 {t: 'p', s: 'Regras do pagamento variável dos motoristas da frota própria (NFS e Comfrio). Valor do variável: até ' + reais(C.valor_frota) + ' por motorista no mês, multiplicado pelo percentual atingido. Metade é produtividade e a outra metade é nível de serviço. Motoristas com o mesmo nome são somados, mesmo que tenham rodado com placas diferentes.'},
 gat,

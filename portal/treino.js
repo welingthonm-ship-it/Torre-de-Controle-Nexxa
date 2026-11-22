@@ -2,7 +2,7 @@
 (() => {
 TC.treinoHoras = window.__nxTreinoHoras || {inicio: '05:00', fim: '', limiteAlerta: '08:00'};
 const H = TC.treinoHoras;
-const RODAPE = 'W ARRAES - Gerência Transporte · CNPJ 70.070.143/0001-55';
+const RODAPE = 'W ARRAES - Gerência Transporte';
 const ciencia = {t: 'assin', s: 'Declaro que recebi o treinamento deste procedimento e estou ciente das regras.'};
 
 TC.popMonitoramentoBlocos = () => [
