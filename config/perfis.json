@@ -48,7 +48,8 @@
       "nome": "Customer",
       "abas": [
         "cs",
-        "consulta-cliente"
+        "consulta-cliente",
+        "consulta-carga"
       ],
       "com_senha": true
     },
