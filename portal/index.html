@@ -10,7 +10,7 @@
 <button type='button' role='tab' data-tab='pendentes' aria-selected='false' data-nome='Entregas pendentes' title='Entregas pendentes'><span class='nx-n'>1.3</span> <span class='nx-lab'>Entregas pendentes</span></button>
 <button type='button' role='tab' data-tab='prazos' aria-selected='false' data-nome='Prazos D+N' title='Prazos D+N'><span class='nx-n'>1.4</span> <span class='nx-lab'>Prazos D+N</span></button>
 <button type='button' role='tab' data-tab='mapa' aria-selected='false' data-nome='Mapa de entregas' title='Mapa de entregas'><span class='nx-n'>1.5</span> <span class='nx-lab'>Mapa de entregas</span></button>
-<button type='button' role='tab' data-tab='pendencias' aria-selected='false' data-nome='Ocorrências do dia' title='Ocorrências do dia'><span class='nx-n'>1.6</span> <span class='nx-lab'>Ocorrências do dia</span><span class='nx-ov-badge' data-draw='ocValN' data-source='entregas_cliente' title='Faltas aguardando validação'></span></button>
+<button type='button' role='tab' data-tab='pendencias' aria-selected='false' data-nome='Ocorrências do dia' title='Ocorrências do dia'><span class='nx-n'>1.6</span> <span class='nx-lab'>Ocorrências do dia</span><span class='nx-ov-badge' data-draw='ocValN' data-source='entregas_cliente' title='Ocorrências aguardando validação'></span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>2</span> Rankings</div>
 <button type='button' role='tab' data-tab='transportadoras' aria-selected='false' data-nome='Ranking de transportadoras' title='Ranking de transportadoras'><span class='nx-n'>2.1</span> <span class='nx-lab'>Transportadoras</span></button>
@@ -599,8 +599,8 @@
 <p class='tc-empty' id='ocor-vazio' hidden>Nenhuma ocorrência registrada neste dia.</p>
 </section>
 <section class='tc-sec' id='ocorrencias-validacao'>
-<h2>Validação das faltas</h2>
-<p class='tc-note'>Toda falta registrada nos últimos 3 dias de rota precisa ser validada pelo monitoramento: confirmar se a carga foi <b>bipada</b> e se existe o <b>vídeo do carregamento</b> que prova ao motorista que o produto foi carregado. Com bipagem e vídeo, a falta fica comprovada como responsabilidade do motorista/transportadora. Enquanto houver falta sem validação, a aba 1.6 pisca em laranja. <b data-draw='ocValTot' data-source='entregas_cliente'>—</b></p>
+<h2>Validação das ocorrências</h2>
+<p class='tc-note'>Toda <b>falta</b>, <b>avaria</b> ou <b>devolução total</b> registrada nos últimos 3 dias de rota precisa ser validada pelo monitoramento: confirmar se a carga foi <b>bipada</b> e se existe o <b>vídeo do carregamento</b> que prova ao motorista que o produto foi carregado. Com bipagem e vídeo, a ocorrência fica comprovada como responsabilidade do motorista/transportadora. Ocorrências de qualidade não entram. Enquanto houver ocorrência sem validação, a aba 1.6 pisca em laranja. <b data-draw='ocValTot' data-source='entregas_cliente'>—</b></p>
 <div class='tc-ctrl nx-ov-filtros'>
 <div class='nx-per-quick' role='group' aria-label='Situação da validação'>
 <button type='button' class='nx-chip' data-ov-sit='pend'>Aguardando <b data-draw='ocValFN' data-k='pend' data-source='entregas_cliente'>—</b></button>

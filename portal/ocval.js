@@ -3,14 +3,15 @@
 (() => {
 const W = window;
 TC.ocVal = W.__nxOcVal || new Map(); W.__nxOcVal = TC.ocVal;
-TC.ocValDias = 3;   // faltas dos últimos 3 dias de rota precisam de validação
+TC.ocValDias = 3;   // ocorrências dos últimos 3 dias de rota precisam de validação
+TC.ocValTipos = ['Falta', 'Avaria', 'Devolução Total'];   // tipos que o monitoramento valida
 const chave = (id) => String(id).replace(/[^A-Za-z0-9_\-.~:@+]/g, '~');
 const d0 = (iso, n) => { const t = new Date(iso + 'T12:00:00'); t.setDate(t.getDate() - n); return t.toISOString().slice(0, 10); };
 TC.ocFaltas = () => {
   const g = dash.data('entregas_cliente'); if (g.status !== 'ok') return null;
   let ult = ''; g.data.forEach((r) => { if (r.data > ult) ult = r.data; });
   const lim = d0(ult || '2000-01-01', TC.ocValDias - 1);
-  return g.data.filter((r) => r.ocorrencia === 'Falta' && r.data >= lim)
+  return g.data.filter((r) => TC.ocValTipos.includes(r.ocorrencia) && r.data >= lim)
     .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : String(a.rota).localeCompare(String(b.rota))));
 };
 TC.ocPend = () => { const f = TC.ocFaltas(); return f ? f.filter((r) => !TC.ocVal.has(chave(r.id))) : null; };
@@ -60,24 +61,24 @@ dash.draw('ocValN', (el) => {
 dash.draw('ocValTot', (el) => {
   const f = TC.ocFaltas(); if (!f) { el.textContent = '—'; return; }
   const p = f.filter((r) => !TC.ocVal.has(chave(r.id))).length;
-  el.textContent = p ? p + (p === 1 ? ' falta aguardando validação' : ' faltas aguardando validação') + ' · ' + (f.length - p) + ' validada' + (f.length - p === 1 ? '' : 's') : 'Todas as ' + f.length + ' faltas validadas';
+  el.textContent = p ? p + (p === 1 ? ' ocorrência aguardando validação' : ' ocorrências aguardando validação') + ' · ' + (f.length - p) + ' validada' + (f.length - p === 1 ? '' : 's') : 'Todas as ' + f.length + ' ocorrências validadas';
 });
 const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt !== undefined) e.textContent = txt; return e; };
 const selSN = (lbl) => { const s = el('select', 'dash-select'); s.setAttribute('aria-label', lbl); [['', '—'], ['Sim', 'Sim'], ['Não', 'Não']].forEach(([v, t]) => s.append(new Option(t, v))); return s; };
-const RES = {comprovada: 'Falta comprovada: carga bipada e vídeo do carregamento. Responsabilidade do motorista/transportadora.', nao_comprovada: 'Falta não comprovada: sem bipagem ou sem vídeo do carregamento.'};
+const RES = {comprovada: 'Ocorrência comprovada: carga bipada e vídeo do carregamento. Responsabilidade do motorista/transportadora.', nao_comprovada: 'Ocorrência não comprovada: sem bipagem ou sem vídeo do carregamento.'};
 TC.ocValRes = RES;
 dash.draw('ocValList', (box) => {
   const f = TC.ocFaltas();
   if (!f) { box.replaceChildren(); return; }
-  if (!f.length) { box.replaceChildren(el('p', 'tc-empty', 'Nenhuma falta registrada nos últimos ' + TC.ocValDias + ' dias.')); return; }
+  if (!f.length) { box.replaceChildren(el('p', 'tc-empty', 'Nenhuma falta, avaria ou devolução total nos últimos ' + TC.ocValDias + ' dias.')); return; }
   const vis = f.filter((r) => passa(r));
-  if (!vis.length) { box.replaceChildren(el('p', 'tc-empty', 'Nenhuma falta com esses filtros.')); return; }
+  if (!vis.length) { box.replaceChildren(el('p', 'tc-empty', 'Nenhuma ocorrência com esses filtros.')); return; }
   const pend = vis.filter((r) => !TC.ocVal.has(chave(r.id))), ok = vis.filter((r) => TC.ocVal.has(chave(r.id)));
   const card = (r) => {
     const v = TC.ocVal.get(chave(r.id));
     const c = el('div', 'nx-ov' + (v ? ' is-ok' : ' is-pend'));
     const h = el('div', 'nx-ov-h');
-    h.append(el('b', '', TC.fdt(r.data).slice(0, 5) + ' · Rota ' + r.rota), el('span', '', (r.transportadora || '—') + ' · ' + (r.motorista || 'motorista não informado') + (r.placa ? ' · ' + r.placa : '')));
+    h.append(el('span', 'nx-ov-tipo', r.ocorrencia), el('b', '', TC.fdt(r.data).slice(0, 5) + ' · Rota ' + r.rota), el('span', '', (r.transportadora || '—') + ' · ' + (r.motorista || 'motorista não informado') + (r.placa ? ' · ' + r.placa : '')));
     c.append(h, el('div', 'nx-ov-cli', (r.codigo ? r.codigo + ' · ' : '') + (r.cliente || '')));
     if (r.comentario) c.append(el('div', 'nx-ov-com', 'Registro do motorista: ' + r.comentario));
     if (v) {
