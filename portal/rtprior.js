@@ -14,7 +14,7 @@ TC.rtJanela = () => {
   const g = dash.data('entregas_cliente'); if (g.status !== 'ok') return new Map();
   const agora = Date.now(), m = new Map();
   g.data.forEach((r) => {
-    if (TC.isEnt(r) || r.chegada_real || r.situacao === 'Devolução total') return;
+    if (TC.isEnt(r) || TC.zerada(r) || r.chegada_real || r.situacao === 'Devolução total') return;
     if (!/–\d\d:\d\d$/.test(String(r.janela || ''))) return;
     const fim = TC.psPrazo(r), falta = (fim - agora) / MIN;
     if (falta <= 0 || falta > TC.janAviso) return;
@@ -43,7 +43,7 @@ TC.rtPrioridades = () => {
   if (g.status !== 'ok' || !day) return null;
   const ini = d0(day, TC.priorDias), m = new Map();
   g.data.forEach((r) => {
-    if (TC.isEnt(r) || r.situacao === 'Devolução total' || r.data > day || r.data < ini) return;
+    if (TC.isEnt(r) || TC.zerada(r) || r.situacao === 'Devolução total' || r.data > day || r.data < ini) return;
     const repo = /^REPO/i.test(String(r.rota || '')), al = TC.alDaEntrega(r), reprog = !!(al && TC.alProxDia[al.tipo]);
     if (r.data === day && !repo) return;
     const k = r.data + '|' + r.rota;

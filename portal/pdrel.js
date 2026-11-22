@@ -71,7 +71,7 @@ TC.pdRelDoc = () => {
 
 dash.draw('pdRelTransp', (sel) => {
   const g = dash.data('entregas_cliente');
-  const ts = g.status === 'ok' ? Array.from(new Set(g.data.filter((r) => !TC.isEnt(r)).map((r) => r.transportadora).filter(Boolean))).sort() : [];
+  const ts = g.status === 'ok' ? Array.from(new Set(g.data.filter((r) => !TC.isEnt(r) && !TC.zerada(r)).map((r) => r.transportadora).filter(Boolean))).sort() : [];
   sel.replaceChildren(new Option('Todas', ''), ...ts.map((t) => new Option(t, t)));
   sel.value = RL.transp && ts.includes(RL.transp) ? RL.transp : '';
 });

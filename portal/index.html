@@ -1248,7 +1248,10 @@ if (/^\d\d:\d\d$/.test(fim || '')) [h, m] = fim.split(':').map(Number);
 else if (prev) [h, m] = prev.slice(11, 16).split(':').map(Number);
 return new Date(base[0], base[1] - 1, base[2], h, m).getTime();
 };
-T.pdCls = (r) => { if (!r || TC.isEnt(r)) return null; if (Date.now() > T.psPrazo(r)) return 'atr'; return T.dnPrev(r) > T.hojeISO() ? 'fut' : 'hoje'; };
+// Pendências zeradas: entregas não concluídas com data de rota até o corte saem das listas de pendentes e prioridades (o histórico não muda).
+T.pendCorte = '2026-11-18';
+T.zerada = (r) => !!(r && T.pendCorte && r.data <= T.pendCorte && !TC.isEnt(r));
+T.pdCls = (r) => { if (!r || TC.isEnt(r) || T.zerada(r)) return null; if (Date.now() > T.psPrazo(r)) return 'atr'; return T.dnPrev(r) > T.hojeISO() ? 'fut' : 'hoje'; };
 T.psNomes = {hoje: 'Para hoje', atr: 'Atrasadas', fut: 'Dias à frente'};
 T.psConta = (rows) => { const c = {hoje: 0, atr: 0, fut: 0}; rows.forEach((r) => { const k = T.pdCls(r); if (k) c[k]++; }); return c; };
 T.psPor = (keyFn) => {
@@ -2352,7 +2355,7 @@ dash.draw('dnRes', (el) => {
 const rows = TC.dnRows(), day = TC.dayFor(el);
 if (!rows || !day) { el.textContent = '—'; return; }
 const h = TC.hojeISO(), k = el.dataset.k;
-const pend = rows.filter((r) => r.data === day && !TC.isEnt(r));
+const pend = rows.filter((r) => r.data === day && !TC.isEnt(r) && !TC.zerada(r));
 const n = k === 'hoje' ? pend.filter((r) => TC.dnPrev(r) === h && TC.pdAtraso(r) <= 0).length : k === 'fut' ? pend.filter((r) => TC.dnPrev(r) > h).length : pend.filter((r) => TC.pdAtraso(r) > 0).length;
 el.textContent = TC.fmt(n, 'int');
 });
@@ -2453,7 +2456,7 @@ TC.csDados = () => {
 const g = dash.data('entregas_cliente');
 const rows = g.status === 'ok' ? g.data : [];
 const by = new Map();
-rows.forEach((r) => { if (!TC.isEnt(r) && (!TC.hojeOk || TC.hojeOk(r))) { const k = r.data + '|' + r.rota; if (!by.has(k)) by.set(k, []); by.get(k).push(r); } });
+rows.forEach((r) => { if (!TC.isEnt(r) && !TC.zerada(r) && (!TC.hojeOk || TC.hojeOk(r))) { const k = r.data + '|' + r.rota; if (!by.has(k)) by.set(k, []); by.get(k).push(r); } });
 const lista = Array.from(TC.al.values()).filter((a) => a.tipo !== 'baixa_manual').concat(Array.from(TC.alCli.values())).map((a) => {
 const peds = (by.get(a.data + '|' + a.rota) || []).filter((p) => a.escopo !== 'clientes' || (a.ids || []).includes(p.id)).slice().sort((x, y) => +x.seq_planejada - +y.seq_planejada);
 const informar = peds.filter((p) => !TC.csInf(a, p.id)).length;
@@ -2589,7 +2592,7 @@ const g = dash.data('entregas_cliente'), R = TC.mpRange();
 if (g.status !== 'ok' || !R) return null;
 const m = new Map();
 g.data.forEach((r) => {
-if ((TC.soHoje ? !TC.prevHoje(r) : (r.data < R.de || r.data > R.ate)) || (P.transp && r.transportadora !== P.transp)) return;
+if ((TC.soHoje ? !TC.prevHoje(r) : (r.data < R.de || r.data > R.ate)) || (P.transp && r.transportadora !== P.transp) || TC.zerada(r)) return;
 const la = +r.lat, lo = +r.lon; if (!r.lat || !r.lon || !isFinite(la) || !isFinite(lo)) return;
 const c = m.get(r.codigo) || {codigo: r.codigo, cliente: r.cliente, cidade: r.cidade, uf: r.uf, lat: la, lon: lo, pend: 0, ent: 0, oc: 0, atr: 0, hoje: 0, fut: 0, rows: []};
 if (!TC.isEnt(r)) { c.pend++; c[TC.pdCls(r)]++; } else { c.ent++; if (r.ocorrencia) c.oc++; }
@@ -2681,7 +2684,7 @@ const g = dash.data('entregas_cliente'), day = TC.dayFor(el);
 if (g.status !== 'ok' || !day) return null;
 const a = day.split('-').map(Number), lim = new Date(a[0], a[1] - 1, a[2] - 1), limIso = lim.getFullYear() + '-' + String(lim.getMonth() + 1).padStart(2, '0') + '-' + String(lim.getDate()).padStart(2, '0');
 const curso = new Set();
-g.data.forEach((r) => { if (r.data === day || (r.data < day && r.status_rota === 'EmExecucao' && !TC.isEnt(r) && TC.dnPrev(r) >= limIso)) curso.add(r.data + '|' + r.rota); });
+g.data.forEach((r) => { if (r.data === day || (r.data < day && r.status_rota === 'EmExecucao' && !TC.isEnt(r) && !TC.zerada(r) && TC.dnPrev(r) >= limIso)) curso.add(r.data + '|' + r.rota); });
 const m = new Map();
 g.data.forEach((r) => {
 if (!curso.has(r.data + '|' + r.rota) || !r.lat || !r.lon) return;

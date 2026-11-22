@@ -16,7 +16,7 @@ TC.relFimDoc = () => {
   if ([gR, gRt, gE].some((g) => g.status !== 'ok')) return null;
   const dias = gR.data.filter((r) => dentro(r.data)).sort((a, b) => (a.data < b.data ? -1 : 1));
   const rotas = gRt.data.filter((r) => dentro(r.data));
-  const pend = gE.data.filter((r) => dentro(r.data) && !TC.isEnt(r) && r.situacao !== 'Devolução total');
+  const pend = gE.data.filter((r) => dentro(r.data) && !TC.isEnt(r) && !TC.zerada(r) && r.situacao !== 'Devolução total');
   const periodo = R.umDia ? TC.dlabel(R.de) : TC.fdt(R.de) + ' a ' + TC.fdt(R.ate);
   const tot = dias.reduce((a, r) => { ['rotas', 'entregas', 'concluidas', 'ocorrencias'].forEach((k) => { a[k] += n0(r[k]); }); return a; }, {rotas: 0, entregas: 0, concluidas: 0, ocorrencias: 0});
   const media = (k) => { const v = dias.filter((r) => r[k] !== null && r[k] !== '' && n0(r.entregas)); const w = v.reduce((s, r) => s + n0(r.entregas), 0); return w ? v.reduce((s, r) => s + n0(r[k]) * n0(r.entregas), 0) / w : null; };

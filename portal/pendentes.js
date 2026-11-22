@@ -37,7 +37,7 @@ TC.pdRows = () => {
 const g = dash.data('entregas_cliente'), R = TC.pdRange();
 if (g.status !== 'ok' || !R) return null;
 const q = TC.pdNorm(P.busca);
-return g.data.filter((r) => !TC.isEnt(r) && (TC.soHoje ? TC.prevHoje(r) : (r.data >= R.de && r.data <= R.ate)) && (!P.transp || r.transportadora === P.transp)
+return g.data.filter((r) => !TC.isEnt(r) && !TC.zerada(r) && (TC.soHoje ? TC.prevHoje(r) : (r.data >= R.de && r.data <= R.ate)) && (!P.transp || r.transportadora === P.transp)
 && (!q || TC.pdNorm(r.cliente + ' ' + r.rota + ' ' + r.cidade + ' ' + r.codigo + ' ' + (r.motorista || '') + ' ' + (r.placa || '')).includes(q)))
 .map((r) => ({r, min: TC.pdAtraso(r), al: TC.alDaEntrega ? TC.alDaEntrega(r) : (TC.alDe ? TC.alDe(r.data, r.rota) : null)}))
 .filter((x) => !P.atraso || (P.atraso === 'atrasadas' ? x.min > 0 : P.atraso === 'prazo' ? x.min <= 0 : x.min > (+P.atraso) * 1440))
@@ -74,7 +74,7 @@ inp.onblur = () => { const r = TC.pdRange(); if (r) inp.value = r[inp.dataset.k]
 });
 dash.draw('pdTransp', (sel) => {
 const g = dash.data('entregas_cliente');
-const ts = g.status === 'ok' ? Array.from(new Set(g.data.filter((r) => !TC.isEnt(r)).map((r) => r.transportadora).filter(Boolean))).sort() : [];
+const ts = g.status === 'ok' ? Array.from(new Set(g.data.filter((r) => !TC.isEnt(r) && !TC.zerada(r)).map((r) => r.transportadora).filter(Boolean))).sort() : [];
 sel.replaceChildren(new Option('Todas', ''), ...ts.map((t) => new Option(t, t)));
 sel.value = TC.pd.transp && ts.includes(TC.pd.transp) ? TC.pd.transp : '';
 sel.onchange = () => { TC.pd.transp = sel.value; dash.draw('pdN'); dash.draw('pdList'); };
