@@ -48,6 +48,10 @@ drop policy if exists "validacoes" on public.docs;
 create policy "validacoes" on public.docs for all to authenticated
   using (public.tem_acesso() and path like 'validacoes/%')
   with check (public.tem_acesso() and path like 'validacoes/%');
+-- Log de alterações: qualquer login com acesso inclui registros; ninguém além do editor altera ou apaga.
+drop policy if exists "logs incluir" on public.docs;
+create policy "logs incluir" on public.docs for insert to authenticated
+  with check (public.tem_acesso() and path like 'logs/%');
 drop policy if exists "dados pessoais" on public.docs;
 create policy "dados pessoais" on public.docs for all to authenticated
   using (path like 'data/users/' || auth.uid()::text || '/%')

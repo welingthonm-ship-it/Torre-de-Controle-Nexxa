@@ -29,6 +29,7 @@
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>6</span> Histórico</div>
 <button type='button' role='tab' data-tab='historico' aria-selected='false' data-nome='Histórico' title='Histórico'><span class='nx-n'>6.1</span> <span class='nx-lab'>Histórico</span></button>
+<button type='button' role='tab' data-tab='logs' aria-selected='false' data-nome='Log de alterações' title='Log de alterações'><span class='nx-n'>6.2</span> <span class='nx-lab'>Log de alterações</span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>7</span> POP - Treinamentos</div>
 <button type='button' role='tab' data-tab='treinamento' aria-selected='false' data-nome='POP - Treinamentos' title='POP - Treinamentos'><span class='nx-n'>7.1</span> <span class='nx-lab'>POP - Treinamentos</span></button>
@@ -606,6 +607,24 @@
 <div class='tc-chart' data-draw='sla' data-source='resumo_dia'></div>
 </section>
 </div>
+</section>
+<section id='logs' class='nx-tab tc' role='tabpanel' aria-label='Log de alterações' hidden>
+<p class='tc-lead'>Quem fez o quê no portal: alertas registrados, editados e removidos, baixas manuais, clientes informados, validação de ocorrências, atualização dos dados e acessos. Os registros não podem ser alterados por quem usa o portal.</p>
+<section class='tc-sec'>
+<div class='tc-ctrl nx-ov-filtros'>
+<label>Mês <select class='dash-select' data-draw='lgMes' aria-label='Mês do log'></select></label>
+<label>Usuário <select class='dash-select' data-draw='lgQuem' aria-label='Usuário'></select></label>
+<label>Ação <select class='dash-select' data-draw='lgAcao' aria-label='Ação'></select></label>
+<label>Buscar <input type='search' class='nx-input' id='lg-busca' placeholder='Rota, cliente ou observação' aria-label='Buscar no log'></label>
+<span class='tc-sub' data-draw='lgN'>—</span>
+</div>
+<div class='tc-tablewrap tc-scroll nx-lg-wrap'>
+<table class='tc-table nx-lg-tab'>
+<thead><tr><th>Quando</th><th>Usuário</th><th>Ação</th><th>Rota</th><th>Detalhe</th></tr></thead>
+<tbody data-draw='lgList'></tbody>
+</table>
+</div>
+</section>
 </section>
 <section id='pendencias' class='nx-tab tc' role='tabpanel' aria-label='Ocorrências do dia' hidden>
 <div class='tc-ctrl nx-daybar'>
@@ -2176,6 +2195,8 @@ TC.al = W.__nxAl || new Map(); W.__nxAl = TC.al;
 TC.alPode = !!W.__nxAlPode;
 TC.alId = (data, rota) => (data + '__' + rota).replace(/[^A-Za-z0-9_\-.~:@+]/g, '_');
 TC.alDe = (data, rota) => TC.al.get(data + '|' + rota) || null;
+// nomes dos clientes para o log de alterações
+TC.logClientes = (data, rota, ids) => { const g = dash.data('entregas_cliente'), m = new Map((g.status === 'ok' ? g.data : []).filter((r) => r.data === data && r.rota === rota).map((r) => [r.id, r.codigo ? r.codigo + ' ' + (r.cliente || '') : (r.cliente || r.id)])); const L = ids.map((id) => m.get(id) || id); return L.length + (L.length === 1 ? ' cliente: ' : ' clientes: ') + L.slice(0, 8).join(', ') + (L.length > 8 ? '…' : ''); };
 // Alertas por cliente (escopo "clientes"): valem só para as entregas marcadas.
 TC.alCli = W.__nxAlCli || new Map(); W.__nxAlCli = TC.alCli;
 TC.alCliDe = (data, rota) => Array.from(TC.alCli.values()).filter((a) => a.data === data && a.rota === rota);
@@ -2235,6 +2256,7 @@ const u = W.claude.use ? await W.claude.use('user').catch(() => null) : null;
 const por = u && u.id ? await u.id().catch(() => '') : '';
 const agora = new Date().toISOString();
 await d.doc('alertas/' + TC.alId(e.data, e.rota) + '__c' + Date.now().toString(36)).set({data: e.data, rota: e.rota, tipo, obs, ids, escopo: 'clientes', em: agora, editado_em: agora, por: por || ''});
+if (TC.log) TC.log('Alerta por cliente registrado', {data: e.data, rota: e.rota, detalhe: (TC.alTipos[tipo] || tipo) + ' · ' + TC.logClientes(e.data, e.rota, ids) + (obs ? ' · ' + obs : '')});
 fechar();
 } catch (err) { msgs('al-msg-erro'); }
 b.disabled = false;
@@ -2255,6 +2277,7 @@ const prev = TC.alDe(e.data, e.rota);
 const body = Object.assign({data: e.data, rota: e.rota, tipo, obs, em: prev && prev.em ? prev.em : new Date().toISOString(), editado_em: new Date().toISOString(), por: por || ''}, extra);
 if (prev && prev.informados) body.informados = JSON.parse(JSON.stringify(prev.informados));
 await d.doc('alertas/' + TC.alId(e.data, e.rota)).set(body);
+if (TC.log) TC.log(tipo === 'baixa_manual' ? 'Baixa manual' : prev ? 'Alerta editado' : 'Alerta registrado', {data: e.data, rota: e.rota, detalhe: (TC.alTipos[tipo] || tipo) + (tipo === 'baixa_manual' ? ': ' + extra.ids.length + ' entrega(s), entregue em ' + extra.entregue_em : '') + (prev && prev.tipo !== tipo ? ' (antes: ' + (TC.alTipos[prev.tipo] || prev.tipo) + ')' : '') + (obs ? ' · ' + obs : '')});
 fechar();
 } catch (err) { msgs('al-msg-erro'); }
 b.disabled = false;
@@ -2262,7 +2285,7 @@ b.disabled = false;
 document.querySelectorAll('#al-remover').forEach((b) => { b.onclick = async () => {
 const e = TC.alEdit; if (!e) return;
 msgs('al-msg-salvando'); b.disabled = true;
-try { const d = await db(); if (!d) throw new Error('sem db'); await d.doc('alertas/' + TC.alId(e.data, e.rota)).delete(); fechar(); }
+try { const d = await db(); if (!d) throw new Error('sem db'); const prev = TC.alDe(e.data, e.rota); await d.doc('alertas/' + TC.alId(e.data, e.rota)).delete(); if (TC.log) TC.log('Alerta removido', {data: e.data, rota: e.rota, detalhe: prev ? (TC.alTipos[prev.tipo] || prev.tipo) + (prev.obs ? ' · ' + prev.obs : '') : ''}); fechar(); }
 catch (err) { msgs('al-msg-erro'); }
 b.disabled = false;
 }; });
@@ -2308,7 +2331,7 @@ L.forEach((a) => {
 const row = document.createElement('div'); row.className = 'nx-al-cli-row';
 const t = document.createElement('span'); t.textContent = ' ' + (a.ids || []).map((id) => nome.get(id) || id).join(', ') + (a.obs ? ' · ' + a.obs : '');
 row.append(TC.alBadge(a), t);
-if (TC.alPode) { const x = document.createElement('button'); x.type = 'button'; x.className = 'nx-al-btn'; x.textContent = 'Remover'; x.onclick = async () => { try { const d = await db(); await d.doc('alertas/' + a._id).delete(); } catch (err) { msgs('al-msg-erro'); } }; row.append(x); }
+if (TC.alPode) { const x = document.createElement('button'); x.type = 'button'; x.className = 'nx-al-btn'; x.textContent = 'Remover'; x.onclick = async () => { try { const d = await db(); await d.doc('alertas/' + a._id).delete(); if (TC.log) TC.log('Alerta por cliente removido', {data: a.data, rota: a.rota, detalhe: (TC.alTipos[a.tipo] || a.tipo) + ' · ' + TC.logClientes(a.data, a.rota, a.ids || [])}); } catch (err) { msgs('al-msg-erro'); } }; row.append(x); }
 box.append(row);
 });
 });
@@ -2340,6 +2363,7 @@ el.append(q); }
 <script src='pdfregras.js'></script>
 <script src='relfim.js'></script>
 <script src='rtprior.js'></script>
+<script src='logs.js'></script>
 <script src='ocval.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>
@@ -2477,7 +2501,9 @@ for (const id of ids) {
 await d.doc('alertas/' + TC.alId(a.data, a.rota) + '/informados/' + TC.csPedKey(id)).set({data: a.data, rota: a.rota, pedido: id, em, por});
 TC.csSel.delete(TC.csInfKey(a, id));
 }
+if (TC.log) TC.log('Cliente informado', {data: a.data, rota: a.rota, detalhe: TC.logClientes(a.data, a.rota, ids)});
 } else {
+if (TC.log) TC.log('Cliente informado desmarcado', {data: a.data, rota: a.rota, detalhe: TC.logClientes(a.data, a.rota, ids)});
 for (const id of ids) { if (TC.csInfMap.has(TC.csInfKey(a, id))) await d.doc('alertas/' + TC.alId(a.data, a.rota) + '/informados/' + TC.csPedKey(id)).delete(); }
 // registros antigos, gravados dentro do próprio alerta
 if (ids.some((id) => a.informados && a.informados[id])) {

@@ -55,14 +55,25 @@
     async docs() {
       const out = new Map(); let de = 0;
       for (;;) {
-        const {data, error} = await client.from('docs').select('path,data').order('path').range(de, de + 999);
+        const {data, error} = await client.from('docs').select('path,data').not('path', 'like', 'logs/%').order('path').range(de, de + 999);
         if (error) throw error;
         data.forEach((r) => out.set(r.path, r.data));
         if (data.length < 1000) break; de += 1000;
       }
       return out;
     },
-    async put(path, v) { const {error} = await client.from('docs').upsert({path, data: v, updated_at: new Date().toISOString()}); if (error) throw error; },
+    async prefix(pre) {
+      const out = new Map(); let de = 0;
+      for (;;) {
+        const {data, error} = await client.from('docs').select('path,data').like('path', pre + '%').order('path').range(de, de + 999);
+        if (error) throw error;
+        data.forEach((r) => out.set(r.path, r.data));
+        if (data.length < 1000) break; de += 1000;
+      }
+      return out;
+    },
+    // log de alterações: só inclusão (ninguém altera um registro já gravado)
+    async put(path, v) { const q = client.from('docs'), row = {path, data: v, updated_at: new Date().toISOString()}; const {error} = path.startsWith('logs/') ? await q.insert(row) : await q.upsert(row); if (error) throw error; },
     async del(path) { const {error} = await client.from('docs').delete().eq('path', path); if (error) throw error; },
     async putBlob(id, blob) { const {error} = await client.storage.from('arquivos').upload(id, blob, {contentType: blob.type || 'text/csv', upsert: true}); if (error) throw error; },
     async getBlob(id) { const {data, error} = await client.storage.from('arquivos').download(id); if (error) throw error; return data; },
@@ -164,15 +175,23 @@
       return () => subs.delete(s);
     }
   });
+  // coleções carregadas só quando abertas (log de alterações), para não pesar a entrada no portal
+  const carregados = new Map();
+  const sobDemanda = (path) => {
+    const pre = segs(path).join('/') + '/';
+    if (!pre.startsWith('logs/') || !backend.prefix) return Promise.resolve();
+    if (!carregados.has(pre)) carregados.set(pre, backend.prefix(pre).then((m) => { m.forEach((v, k) => { if (!DOCS.has(k)) DOCS.set(k, v); }); }).catch((e) => { carregados.delete(pre); throw e; }));
+    return carregados.get(pre);
+  };
   const colRef = (path) => ({
     path,
     doc: (id) => docRef(segs(path).concat(id || Math.random().toString(36).slice(2)).join('/')),
     add: async (v) => { const r = docRef(segs(path).concat(Date.now().toString(36) + Math.random().toString(36).slice(2, 7)).join('/')); await r.set(v); return r; },
-    get: async () => { await iniciaDocs(); return snapCol(path); },
+    get: async () => { await iniciaDocs(); await sobDemanda(path); return snapCol(path); },
     onSnapshot: (cb, err) => {
       const pre = segs(path).join('/') + '/', n = segs(path).length + 1;
       const s = {match: (p) => p.startsWith(pre) && segs(p).length === n, cb: () => cb(snapCol(path))};
-      subs.add(s); iniciaDocs().then(() => { if (subs.has(s)) s.cb(); });
+      subs.add(s); iniciaDocs().then(() => sobDemanda(path)).then(() => { if (subs.has(s)) s.cb(); }, (e) => { if (err) err(e); });
       return () => subs.delete(s);
     }
   });

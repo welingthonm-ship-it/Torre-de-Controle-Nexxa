@@ -92,6 +92,7 @@ window.NXU = (function () {
       }
       IDS.forEach(function (x) { try { dash.refresh(x); } catch (e) { /* segue */ } });
       U.set({ st: 'done', done: { at: at, dias: res.dias, novas: res.novas, alertas: res.alertas } });
+      try { if (window.TC && TC.log) { var ds = (res.dias || []).slice().sort(); TC.log('Dados atualizados', { detalhe: 'Relatório do roteirizador: ' + ds.length + ' dia(s) de rota' + (ds.length ? ' (' + ds[0].split('-').reverse().slice(0, 2).join('/') + (ds.length > 1 ? ' a ' + ds[ds.length - 1].split('-').reverse().slice(0, 2).join('/') : '') + ')' : '') }); } } catch (e) { /* segue */ }
     } catch (e) {
       var msg = (e && e.message) || String(e);
       if (e && (e.code === 'not_granted' || e.code === 'not_writer')) msg = 'Só quem pode editar o portal consegue publicar uma atualização.';

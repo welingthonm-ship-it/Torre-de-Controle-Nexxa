@@ -98,7 +98,7 @@ dash.draw('ocValList', (box) => {
       c.append(el('div', 'nx-ov-res ' + (v.resultado === 'comprovada' ? 'is-comp' : 'is-nc'), RES[v.resultado] || '—'));
       c.append(el('div', 'nx-ov-det', 'Bipada: ' + v.bipada + ' · Vídeo: ' + v.video + ' · ' + v.justificativa + ' — validado' + (v.por_nome ? ' por ' + v.por_nome : '') + (v.em ? ' em ' + new Date(v.em).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) : '')));
       const re = el('button', 'nx-chip', 'Refazer validação'); re.type = 'button';
-      re.onclick = async () => { try { const d = await db(); await d.doc('validacoes/' + chave(r.id)).delete(); } catch (e) { c.append(el('p', 'nx-al-err', 'Não foi possível desfazer.')); } };
+      re.onclick = async () => { try { const d = await db(); await d.doc('validacoes/' + chave(r.id)).delete(); if (TC.log) TC.log('Validação de ocorrência desfeita', {data: r.data, rota: r.rota, detalhe: r.ocorrencia + ' · ' + (r.codigo ? r.codigo + ' ' : '') + (r.cliente || '')}); } catch (e) { c.append(el('p', 'nx-al-err', 'Não foi possível desfazer.')); } };
       c.append(re);
       return c;
     }
@@ -117,6 +117,7 @@ dash.draw('ocValList', (box) => {
         const d = await db(); if (!d) throw new Error('sem banco');
         await d.doc('validacoes/' + chave(r.id)).set({id: r.id, data: r.data, rota: r.rota, codigo: r.codigo || '', cliente: r.cliente || '', motorista: r.motorista || '', transportadora: r.transportadora || '',
           bipada: bp.value, video: vd.value, justificativa: js.value.trim(), resultado: bp.value === 'Sim' && vd.value === 'Sim' ? 'comprovada' : 'nao_comprovada', em: new Date().toISOString(), por_nome: quem});
+        if (TC.log) TC.log('Ocorrência validada', {data: r.data, rota: r.rota, detalhe: r.ocorrencia + ' · ' + (r.codigo ? r.codigo + ' ' : '') + (r.cliente || '') + ' · ' + (bp.value === 'Sim' && vd.value === 'Sim' ? 'comprovada' : 'não comprovada') + ' (bipada: ' + bp.value + ', vídeo: ' + vd.value + ') · ' + js.value.trim()});
       } catch (e) { er.textContent = 'Não foi possível salvar (seu acesso pode não permitir).'; er.hidden = false; bt.disabled = false; }
     };
     fm.append(l1, l2, l3, bt, er);

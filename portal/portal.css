@@ -492,3 +492,12 @@ tr.nx-jan-row td{background:#FFF4F2}
 .nx-ha-tab td.nx-ha-up{color:#067647}
 .nx-ha-tab td.nx-ha-down{color:#B42318}
 .nx-ha-tab tr.nx-ha-total td{font-weight:700;border-top:2px solid var(--color-border-line);background:#FFF8DB}
+/* Log de alterações */
+.nx-lg-wrap.tc-scroll{max-height:70vh}
+.nx-lg-tab td.nx-lg-em{white-space:nowrap;font-variant-numeric:tabular-nums}
+.nx-lg-tab td.nx-lg-det{white-space:normal;min-width:280px;max-width:560px}
+.nx-lg-acao{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.nx-lg-add{color:#067647;background:#ECFDF3}
+.nx-lg-rem{color:#B42318;background:#FEF3F2}
+.nx-lg-upd{color:#175CD3;background:#EAF1FD}
+.nx-lg-ace{color:#475467;background:#F2F4F7}
