@@ -80,6 +80,7 @@ const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) 
 const selSN = (lbl) => { const s = el('select', 'dash-select'); s.setAttribute('aria-label', lbl); [['', '—'], ['Sim', 'Sim'], ['Não', 'Não']].forEach(([v, t]) => s.append(new Option(t, v))); return s; };
 const RES = {comprovada: 'Ocorrência comprovada: carga bipada e vídeo do carregamento. Responsabilidade do motorista/transportadora.', nao_comprovada: 'Ocorrência não comprovada: sem bipagem ou sem vídeo do carregamento.'};
 TC.ocValRes = RES;
+TC.ocResp = ['Nexxa-Transporte', 'Nexxa-Comercial', 'Nexxa-Logistica', 'Nexxa-ADM'];   // responsável pela ocorrência
 dash.draw('ocValList', (box) => {
   const f = TC.ocLista();
   if (!f) { box.replaceChildren(); return; }
@@ -96,13 +97,15 @@ dash.draw('ocValList', (box) => {
     if (r.comentario) c.append(el('div', 'nx-ov-com', 'Registro do motorista: ' + r.comentario));
     if (v) {
       c.append(el('div', 'nx-ov-res ' + (v.resultado === 'comprovada' ? 'is-comp' : 'is-nc'), RES[v.resultado] || '—'));
-      c.append(el('div', 'nx-ov-det', 'Bipada: ' + v.bipada + ' · Vídeo: ' + v.video + ' · ' + v.justificativa + ' — validado' + (v.por_nome ? ' por ' + v.por_nome : '') + (v.em ? ' em ' + new Date(v.em).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) : '')));
+      c.append(el('div', 'nx-ov-det', (v.responsavel ? 'Responsável: ' + v.responsavel + ' · ' : '') + 'Bipada: ' + v.bipada + ' · Vídeo: ' + v.video + ' · ' + v.justificativa + ' — validado' + (v.por_nome ? ' por ' + v.por_nome : '') + (v.em ? ' em ' + new Date(v.em).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) : '')));
       const re = el('button', 'nx-chip', 'Refazer validação'); re.type = 'button';
       re.onclick = async () => { try { const d = await db(); await d.doc('validacoes/' + chave(r.id)).delete(); if (TC.log) TC.log('Validação de ocorrência desfeita', {data: r.data, rota: r.rota, detalhe: r.ocorrencia + ' · ' + (r.codigo ? r.codigo + ' ' : '') + (r.cliente || '')}); } catch (e) { c.append(el('p', 'nx-al-err', 'Não foi possível desfazer.')); } };
       c.append(re);
       return c;
     }
     const fm = el('div', 'nx-ov-form');
+    const rp = el('select', 'dash-select'); rp.setAttribute('aria-label', 'Responsável pela ocorrência'); rp.append(new Option('Selecione…', ''), ...TC.ocResp.map((x) => new Option(x, x)));
+    const l0 = el('label', '', 'Responsável '); l0.append(rp);
     const bp = selSN('A carga foi bipada?'), vd = selSN('Tem vídeo do carregamento?');
     const js = el('input', 'nx-input'); js.type = 'text'; js.maxLength = 300; js.placeholder = 'Justificativa (ex.: bipado às 05:42, vídeo no grupo da expedição)'; js.setAttribute('aria-label', 'Justificativa');
     const l1 = el('label', '', 'Carga bipada? '); l1.append(bp);
@@ -111,16 +114,16 @@ dash.draw('ocValList', (box) => {
     const bt = el('button', 'nx-btn', 'Validar'); bt.type = 'button';
     const er = el('span', 'nx-al-err'); er.hidden = true;
     bt.onclick = async () => {
-      if (!bp.value || !vd.value || !js.value.trim()) { er.textContent = 'Preencha bipagem, vídeo e justificativa.'; er.hidden = false; return; }
+      if (!rp.value || !bp.value || !vd.value || !js.value.trim()) { er.textContent = 'Preencha responsável, bipagem, vídeo e justificativa.'; er.hidden = false; return; }
       bt.disabled = true;
       try {
         const d = await db(); if (!d) throw new Error('sem banco');
         await d.doc('validacoes/' + chave(r.id)).set({id: r.id, data: r.data, rota: r.rota, codigo: r.codigo || '', cliente: r.cliente || '', motorista: r.motorista || '', transportadora: r.transportadora || '',
-          bipada: bp.value, video: vd.value, justificativa: js.value.trim(), resultado: bp.value === 'Sim' && vd.value === 'Sim' ? 'comprovada' : 'nao_comprovada', em: new Date().toISOString(), por_nome: quem});
-        if (TC.log) TC.log('Ocorrência validada', {data: r.data, rota: r.rota, detalhe: r.ocorrencia + ' · ' + (r.codigo ? r.codigo + ' ' : '') + (r.cliente || '') + ' · ' + (bp.value === 'Sim' && vd.value === 'Sim' ? 'comprovada' : 'não comprovada') + ' (bipada: ' + bp.value + ', vídeo: ' + vd.value + ') · ' + js.value.trim()});
+          responsavel: rp.value, bipada: bp.value, video: vd.value, justificativa: js.value.trim(), resultado: bp.value === 'Sim' && vd.value === 'Sim' ? 'comprovada' : 'nao_comprovada', em: new Date().toISOString(), por_nome: quem});
+        if (TC.log) TC.log('Ocorrência validada', {data: r.data, rota: r.rota, detalhe: r.ocorrencia + ' · ' + (r.codigo ? r.codigo + ' ' : '') + (r.cliente || '') + ' · responsável ' + rp.value + ' · ' + (bp.value === 'Sim' && vd.value === 'Sim' ? 'comprovada' : 'não comprovada') + ' (bipada: ' + bp.value + ', vídeo: ' + vd.value + ') · ' + js.value.trim()});
       } catch (e) { er.textContent = 'Não foi possível salvar (seu acesso pode não permitir).'; er.hidden = false; bt.disabled = false; }
     };
-    fm.append(l1, l2, l3, bt, er);
+    fm.append(l0, l1, l2, l3, bt, er);
     c.append(fm);
     return c;
   };
