@@ -5,7 +5,7 @@ const pct = (v) => (v === null || v === undefined || v === '' ? '—' : (+v).toF
 const int = (v) => TC.fmt(n0(v), 'int');
 const hm = (dt) => { const s = TC.fdt(dt); return s.length > 10 ? s.slice(0, 5) + ' ' + s.slice(11) : s; };
 
-const CURTO = {sinistro: 'Sinistro (carga roubada)', socorro: 'Carro quebrado – socorro', quebrado_prox: 'Quebrado – segue amanhã', reprogramado: 'Reprogramado p/ amanhã', excesso_volumes: 'Reprog. – excesso de volumes', atraso_saida: 'Saída com atraso', baixa_manual: 'Baixa manual', outro: 'Outra divergência'};
+const CURTO = {sinistro: 'Sinistro (carga roubada)', socorro: 'Carro quebrado – socorro', quebrado_prox: 'Quebrado – segue amanhã', reprogramado: 'Reprogramado p/ amanhã', excesso_volumes: 'Reprog. – excesso de volumes', atraso_saida: 'Saída com atraso', atraso_entrega: 'Atraso na entrega', baixa_manual: 'Baixa manual', outro: 'Outra divergência'};
 const alNome = (t) => CURTO[t] || (TC.alTipos && TC.alTipos[t]) || 'Alerta';
 
 // Relatório de fechamento enxuto: indicadores, pontos de atenção, alertas e pendências por rota (uma linha por rota).

@@ -11,6 +11,7 @@
 <button type='button' role='tab' data-tab='prazos' aria-selected='false' data-nome='Prazos D+N' title='Prazos D+N'><span class='nx-n'>1.4</span> <span class='nx-lab'>Prazos D+N</span></button>
 <button type='button' role='tab' data-tab='mapa' aria-selected='false' data-nome='Mapa de entregas' title='Mapa de entregas'><span class='nx-n'>1.5</span> <span class='nx-lab'>Mapa de entregas</span></button>
 <button type='button' role='tab' data-tab='pendencias' aria-selected='false' data-nome='Ocorrências do dia' title='Ocorrências do dia'><span class='nx-n'>1.6</span> <span class='nx-lab'>Ocorrências do dia</span><span class='nx-ov-badge' data-draw='ocValN' data-source='entregas_cliente' title='Ocorrências aguardando validação'></span></button>
+<button type='button' role='tab' data-tab='atrasos' aria-selected='false' data-nome='Atrasos previstos' title='Atrasos previstos'><span class='nx-n'>1.7</span> <span class='nx-lab'>Atrasos previstos</span><span class='nx-ov-badge' data-draw='atN' data-source='entregas_cliente' title='Entregas com atraso previsto sem alerta'></span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>2</span> Rankings</div>
 <button type='button' role='tab' data-tab='transportadoras' aria-selected='false' data-nome='Ranking de transportadoras' title='Ranking de transportadoras'><span class='nx-n'>2.1</span> <span class='nx-lab'>Transportadoras</span></button>
@@ -75,6 +76,7 @@
 <option value='reprogramado'>Reprogramado para o próximo dia</option>
 <option value='excesso_volumes'>Pedido reprogramado – excesso de volumes</option>
 <option value='atraso_saida'>Saída com atraso – possíveis atrasos nas entregas</option>
+<option value='atraso_entrega'>Atraso / possível atraso na entrega</option>
 <option value='baixa_manual'>Baixa manual – entregue (falha no app do motorista)</option>
 <option value='outro'>Outra divergência</option>
 </select></label>
@@ -607,6 +609,27 @@
 <div class='tc-chart' data-draw='sla' data-source='resumo_dia'></div>
 </section>
 </div>
+</section>
+<section id='atrasos' class='nx-tab tc' role='tabpanel' aria-label='Atrasos previstos' hidden>
+<p class='tc-lead'>Entregas de hoje com previsão de chegada depois do fim da janela, e entregas de dias anteriores ainda não entregues. Enquanto alguma estiver sem alerta, a aba 1.7 pisca. Registre o alerta (atraso, reprogramação ou outro motivo) e avise o Customer Service; a entrega para de piscar na hora.</p>
+<section class='tc-sec'>
+<div class='nx-at-legenda'><span class='nx-at-nivel nx-at-atrasada'>Atrasada (dia anterior)</span> <span class='nx-at-nivel nx-at-previsto'>Atraso previsto</span>: chega mais de 1 h após o fim da janela (fora do SLA) · <span class='nx-at-nivel nx-at-possivel'>Possível atraso</span>: passa do fim da janela, ainda dentro da tolerância de 1 h.</div>
+<p class='nx-ov-tot' data-draw='atTot' data-source='entregas_cliente'>—</p>
+<div class='tc-ctrl nx-ov-filtros'>
+<div class='nx-chips' role='group' aria-label='Situação'>
+<button type='button' class='nx-chip' data-at-sit='sem'>Sem alerta <span data-draw='atFN' data-k='sem' data-source='entregas_cliente'></span></button>
+<button type='button' class='nx-chip' data-at-sit='com'>Com alerta <span data-draw='atFN' data-k='com' data-source='entregas_cliente'></span></button>
+<button type='button' class='nx-chip' data-at-sit='todas'>Todas <span data-draw='atFN' data-k='todas' data-source='entregas_cliente'></span></button>
+</div>
+<label>Buscar <input type='search' class='nx-input' id='at-busca' placeholder='Rota, motorista, cliente ou transportadora' aria-label='Buscar atrasos'></label>
+</div>
+<div class='tc-tablewrap tc-scroll nx-lg-wrap'>
+<table class='tc-table nx-at-tab'>
+<thead><tr><th>Situação</th><th>Rota</th><th>Transportadora</th><th>Motorista</th><th>Cliente</th><th>Janela</th><th>Previsão</th><th>Status da rota</th><th>Alerta</th></tr></thead>
+<tbody data-draw='atList' data-source='entregas_cliente'></tbody>
+</table>
+</div>
+</section>
 </section>
 <section id='logs' class='nx-tab tc' role='tabpanel' aria-label='Log de alterações' hidden>
 <p class='tc-lead'>Quem fez o quê no portal: alertas registrados, editados e removidos, baixas manuais, clientes informados, validação de ocorrências, atualização dos dados e acessos. Os registros não podem ser alterados por quem usa o portal.</p>
@@ -2190,7 +2213,7 @@ TC.tvArm();
 (() => {
 const W = window;
 TC.alProxDia = {reprogramado: true, quebrado_prox: true, excesso_volumes: true};
-TC.alTipos = {sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', excesso_volumes: 'Pedido reprogramado – excesso de volumes', atraso_saida: 'Saída com atraso – possíveis atrasos nas entregas', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência'};
+TC.alTipos = {sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', excesso_volumes: 'Pedido reprogramado – excesso de volumes', atraso_saida: 'Saída com atraso – possíveis atrasos nas entregas', atraso_entrega: 'Atraso / possível atraso na entrega', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência'};
 TC.al = W.__nxAl || new Map(); W.__nxAl = TC.al;
 TC.alPode = !!W.__nxAlPode;
 TC.alId = (data, rota) => (data + '__' + rota).replace(/[^A-Za-z0-9_\-.~:@+]/g, '_');
@@ -2364,6 +2387,7 @@ el.append(q); }
 <script src='relfim.js'></script>
 <script src='rtprior.js'></script>
 <script src='logs.js'></script>
+<script src='atrasos.js'></script>
 <script src='ocval.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>

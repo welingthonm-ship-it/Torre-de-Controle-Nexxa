@@ -501,3 +501,17 @@ tr.nx-jan-row td{background:#FFF4F2}
 .nx-lg-rem{color:#B42318;background:#FEF3F2}
 .nx-lg-upd{color:#175CD3;background:#EAF1FD}
 .nx-lg-ace{color:#475467;background:#F2F4F7}
+/* 1.7 Atrasos previstos */
+.nx-al-atraso_entrega{color:#B42318;background:#FEE4E2}
+.nx-at-legenda{font-size:var(--cds-font-size-caption);color:var(--color-text-secondary,#475467);margin:0 0 var(--cds-gap-sm);line-height:1.9}
+.nx-at-nivel{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.nx-at-atrasada{color:#fff;background:#B42318}
+.nx-at-previsto{color:#B42318;background:#FEE4E2}
+.nx-at-possivel{color:#B54708;background:#FEF0C7}
+.nx-at-tab td{vertical-align:middle}
+.nx-at-btn{padding:4px 10px;font-size:12px;white-space:nowrap}
+.nx-at-sem{color:#B42318;font-weight:600;font-size:12px}
+@keyframes nxAtPisca{0%,100%{background:transparent}50%{background:#FEE4E2}}
+.nx-at-tab tr.nx-at-pisca td{animation:nxAtPisca 1.4s ease-in-out infinite}
+.nx-at-tab tr.nx-at-ok td{opacity:.75}
+@media (prefers-reduced-motion:reduce){.nx-at-tab tr.nx-at-pisca td{animation:none;background:#FEF3F2}}
