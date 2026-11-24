@@ -24,7 +24,7 @@ TC.ocLista = () => {
     .sort((a, b) => (a.data < b.data ? 1 : a.data > b.data ? -1 : String(a.rota).localeCompare(String(b.rota))));
 };
 TC.ocPend = () => { const f = TC.ocFaltas(); return f ? f.filter((r) => !TC.ocVal.has(chave(r.id))) : null; };
-const redraw = () => ['ocValN', 'ocValList', 'ocValTot', 'ocValFN', 'ocValTr'].forEach((n) => dash.draw(n));
+const redraw = () => ['ocValN', 'ocValList', 'ocValTot', 'ocValFN', 'ocValTr', 'rsOcResp'].forEach((n) => dash.draw(n));
 // Filtros da lista: situação, transportadora e busca (rota, motorista, cliente)
 TC.ocF = W.__nxOcF || {sit: 'pend', tr: '', q: '', de: '', ate: ''}; W.__nxOcF = TC.ocF;
 const F = TC.ocF;
@@ -80,6 +80,24 @@ const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) 
 const selSN = (lbl) => { const s = el('select', 'dash-select'); s.setAttribute('aria-label', lbl); [['', '—'], ['Sim', 'Sim'], ['Não', 'Não']].forEach(([v, t]) => s.append(new Option(t, v))); return s; };
 const RES = {comprovada: 'Ocorrência comprovada: carga bipada e vídeo do carregamento. Responsabilidade do motorista/transportadora.', nao_comprovada: 'Ocorrência não comprovada: sem bipagem ou sem vídeo do carregamento.'};
 TC.ocValRes = RES;
+// Resumo do dia: % de ocorrências dividido pela área responsável (definida na validação)
+dash.draw('rsOcResp', (box) => {
+  const c = TC.rsCalc ? TC.rsCalc() : null;
+  box.replaceChildren(); if (!c || !c.rows.length) return;
+  const oc = c.rows.filter((r) => r.ocorrencia); if (!oc.length) return;
+  const m = new Map(); TC.ocResp.forEach((a) => m.set(a, 0));
+  oc.forEach((r) => { const v = TC.ocVal.get(chave(r.id)); const k = v && v.responsavel ? v.responsavel : v ? 'Validada sem área' : 'Sem validação'; m.set(k, (m.get(k) || 0) + 1); });
+  const tot = c.rows.length;
+  Array.from(m.entries()).filter(([k, n]) => n > 0 || TC.ocResp.includes(k)).forEach(([k, n]) => {
+    const row = el('div', 'nx-ocr-row' + (k === 'Sem validação' ? ' is-pend' : n ? '' : ' is-zero'));
+    const pc = tot ? n / tot * 100 : 0, sh = oc.length ? n / oc.length * 100 : 0;
+    const bar = el('i', 'nx-ocr-bar'); const f = el('b'); f.style.width = Math.min(100, sh) + '%'; bar.append(f);
+    row.append(el('span', 'nx-ocr-k', k.replace('Nexxa-', '')), bar, el('span', 'nx-ocr-v', pc.toFixed(pc && pc < 1 ? 2 : 1).replace('.', ',') + '% (' + n + ')'));
+    row.title = k + ': ' + n + ' ocorrência(s), ' + sh.toFixed(0) + '% das ocorrências e ' + pc.toFixed(1).replace('.', ',') + '% das entregas do filtro';
+    box.append(row);
+  });
+});
+if (TC.rsDraws && !TC.rsDraws.includes('rsOcResp')) TC.rsDraws.push('rsOcResp');
 TC.ocResp = ['Nexxa-Transporte', 'Nexxa-Comercial', 'Nexxa-Logistica', 'Nexxa-ADM'];   // responsável pela ocorrência
 dash.draw('ocValList', (box) => {
   const f = TC.ocLista();
