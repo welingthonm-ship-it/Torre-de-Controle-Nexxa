@@ -19,7 +19,11 @@ TC.rpLista = () => {
   const out = [];
   g.data.forEach((r) => {
     if (TC.isEnt(r) || TC.zerada(r) || r.situacao === 'Devolução total') return;
-    const al = TC.alDaEntrega(r); if (!al || !TC.alProxDia[al.tipo]) return;
+    const al = TC.alDaEntrega(r);
+    // carga inteira que não saiu do CD no dia (stand-by, sem expedição) também é reprogramação
+    const naoSaiu = !(al && TC.alProxDia[al.tipo]) && r.status_rota === 'StandBy' && !r.saida_cd && r.data < TC.hojeISO();
+    if (!(al && TC.alProxDia[al.tipo]) && !naoSaiu) return;
+    if (naoSaiu) { out.push({r, al: null, naoSaiu: true, nova: diaSeg(r.data), prev: '', v: TC.rpVal.get(chave(r.id))}); return; }
     const p = TC.prevAtual(r);
     const nova = p && p.tipo === 'reprog' && p.dt ? String(p.dt).slice(0, 10) : diaSeg(al.em ? isoDe(new Date(al.em)) : r.data);
     out.push({r, al, nova, prev: p && p.tipo === 'reprog' ? p.dt : '', v: TC.rpVal.get(chave(r.id))});
@@ -28,10 +32,12 @@ TC.rpLista = () => {
 };
 const grupos = (L) => {
   const m = new Map();
-  L.forEach((x) => { const k = x.r.data + '|' + x.r.rota; if (!m.has(k)) m.set(k, {k, data: x.r.data, rota: x.r.rota, r0: x.r, al: x.al, itens: []}); m.get(k).itens.push(x); });
+  L.forEach((x) => { const k = x.r.data + '|' + x.r.rota; if (!m.has(k)) m.set(k, {k, data: x.r.data, rota: x.r.rota, r0: x.r, al: x.al, naoSaiu: !!x.naoSaiu, itens: []}); m.get(k).itens.push(x); });
   const G = Array.from(m.values());
-  G.forEach((g) => { g.itens.sort((a, b) => (+a.r.seq_planejada || 0) - (+b.r.seq_planejada || 0)); g.pend = g.itens.filter((x) => !x.v).length; });
-  return G.sort((a, b) => (b.pend > 0) - (a.pend > 0) || String(b.al.em || '').localeCompare(String(a.al.em || '')) || String(a.rota).localeCompare(String(b.rota)));
+  G.forEach((g) => { g.itens.sort((a, b) => (+a.r.seq_planejada || 0) - (+b.r.seq_planejada || 0)); g.pend = g.itens.filter((x) => !x.v).length;
+    const tot = g.itens.length ? (dash.data('entregas_cliente').data || []).filter((r) => r.data === g.data && r.rota === g.rota && !TC.isEnt(r)).length : 0;
+    g.inteira = g.naoSaiu || (g.al && g.al.escopo !== 'clientes') || (tot > 0 && g.itens.length >= tot); });
+  return G.sort((a, b) => (b.pend > 0) - (a.pend > 0) || String((b.al && b.al.em) || b.data).localeCompare(String((a.al && a.al.em) || a.data)) || String(a.rota).localeCompare(String(b.rota)));
 };
 const redraw = () => ['rpN', 'rpTot', 'rpList', 'rpFN'].forEach((n) => dash.draw(n));
 TC.rpRedraw = redraw;
@@ -71,9 +77,10 @@ dash.draw('rpList', (box) => {
   box.replaceChildren(...G.map((g) => {
     const c = el('div', 'nx-ov nx-rp' + (g.pend ? ' is-pend' : ' is-ok'));
     const h = el('div', 'nx-ov-h');
-    h.append(TC.alBadge(g.al), el('b', '', 'Rota ' + g.rota + ' · ' + TC.fdt(g.data).slice(0, 5)), el('span', '', (g.r0.transportadora || '—') + ' · ' + (g.r0.motorista || 'motorista não informado') + (g.r0.placa ? ' · ' + g.r0.placa : '')));
+    h.append(g.al ? TC.alBadge(g.al) : el('span', 'nx-rp-tag', 'Não expedida (stand-by)'), g.inteira ? el('span', 'nx-rp-inteira', 'Carga inteira · ' + g.itens.length + ' pedido' + (g.itens.length === 1 ? '' : 's')) : el('span', 'nx-rp-parcial', 'Parcial · ' + g.itens.length + ' pedido' + (g.itens.length === 1 ? '' : 's')), el('b', '', 'Rota ' + g.rota + ' · ' + TC.fdt(g.data).slice(0, 5)), el('span', '', (g.r0.transportadora || '—') + ' · ' + (g.r0.motorista || 'motorista não informado') + (g.r0.placa ? ' · ' + g.r0.placa : '')));
     c.append(h);
-    if (g.al.obs) c.append(el('div', 'nx-ov-com', 'Alerta: ' + g.al.obs + (g.al.em ? ' (registrado em ' + new Date(g.al.em).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) + ')' : '')));
+    if (g.naoSaiu) c.append(el('div', 'nx-ov-com', 'A rota ficou em stand-by e não teve saída do CD no dia: a carga inteira passa para o dia seguinte.'));
+    if (g.al && g.al.obs) c.append(el('div', 'nx-ov-com', 'Alerta: ' + g.al.obs + (g.al.em ? ' (registrado em ' + new Date(g.al.em).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) + ')' : '')));
     const tb = el('table', 'tc-table nx-rp-tab');
     const hr = el('tr'); ['', 'Seq.', 'Cliente', 'Cidade/UF', 'Janela', 'Reprogramado para', 'Validação'].forEach((t) => hr.append(el('th', '', t)));
     const thead = el('thead'); thead.append(hr); const tbody = el('tbody'); tb.append(thead, tbody);
@@ -100,7 +107,7 @@ dash.draw('rpList', (box) => {
       const l1 = el('label', '', 'Programado para '); l1.append(dt);
       const ob = el('input', 'nx-input'); ob.type = 'text'; ob.maxLength = 200; ob.placeholder = 'Observação (opcional): ex. programado na rota X, veículo Y';
       const l2 = el('label', 'nx-ov-js', 'Observação '); l2.append(ob);
-      const bt = el('button', 'nx-btn', 'Validar reprogramação'); bt.type = 'button';
+      const bt = el('button', 'nx-btn', g.inteira && marc.length === g.itens.length ? 'Validar carga inteira' : 'Validar reprogramação'); bt.type = 'button';
       const er = el('span', 'nx-al-err'); er.hidden = true;
       bt.onclick = async () => {
         const sel = marc.filter((m) => m.cb.checked).map((m) => m.x);
@@ -110,9 +117,9 @@ dash.draw('rpList', (box) => {
           const d = await db(); if (!d) throw new Error('sem banco');
           const em = new Date().toISOString();
           for (const x of sel) {
-            await d.doc('reprog/' + chave(x.r.id)).set({id: x.r.id, data: x.r.data, rota: x.r.rota, codigo: x.r.codigo || '', cliente: x.r.cliente || '', transportadora: x.r.transportadora || '', tipo: g.al.tipo, nova_data: dt.value, obs: ob.value.trim(), em, por_nome: quem});
+            await d.doc('reprog/' + chave(x.r.id)).set({id: x.r.id, data: x.r.data, rota: x.r.rota, codigo: x.r.codigo || '', cliente: x.r.cliente || '', transportadora: x.r.transportadora || '', tipo: g.al ? g.al.tipo : 'nao_expedida', inteira: !!g.inteira, nova_data: dt.value, obs: ob.value.trim(), em, por_nome: quem});
           }
-          if (TC.log) TC.log('Reprogramação validada', {data: g.data, rota: g.rota, detalhe: 'Programado para ' + fd(dt.value) + ' · ' + TC.logClientes(g.data, g.rota, sel.map((x) => x.r.id)) + (ob.value.trim() ? ' · ' + ob.value.trim() : '')});
+          if (TC.log) TC.log(g.inteira ? 'Reprogramação validada (carga inteira)' : 'Reprogramação validada', {data: g.data, rota: g.rota, detalhe: (g.naoSaiu ? 'Não expedida · ' : '') + 'Programado para ' + fd(dt.value) + ' · ' + TC.logClientes(g.data, g.rota, sel.map((x) => x.r.id)) + (ob.value.trim() ? ' · ' + ob.value.trim() : '')});
         } catch (e) { er.textContent = 'Não foi possível salvar (seu acesso pode não permitir).'; er.hidden = false; bt.disabled = false; }
       };
       fm.append(l1, l2, bt, er); c.append(fm);

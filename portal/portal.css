@@ -524,3 +524,7 @@ tr.nx-jan-row td{background:#FFF4F2}
 .nx-rp-vok{color:#067647;font-size:12px;font-weight:600}
 .nx-rp-vpend{color:#B54708;font-size:12px;font-weight:600}
 .nx-rp .nx-ov-form input.nx-date{min-width:0}
+.nx-rp-tag{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;color:#7A2E0E;background:#FDEAD7}
+.nx-rp-inteira{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 8px;color:#fff;background:#B54708}
+.nx-rp-parcial{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;color:#475467;background:#F2F4F7}
+.nx-ov-h .nx-rp-inteira{color:#fff}.nx-ov-h .nx-rp-tag{color:#7A2E0E}.nx-ov-h .nx-rp-parcial{color:#475467}
