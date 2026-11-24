@@ -126,3 +126,9 @@ begin
   delete from auth.users where id = uid;
 end $$;
 revoke all on function public.remover_login(text) from public, anon, authenticated;
+
+-- Reprogramações (1.8): qualquer login com acesso valida.
+drop policy if exists "reprog" on public.docs;
+create policy "reprog" on public.docs for all to authenticated
+  using (public.tem_acesso() and path like 'reprog/%')
+  with check (public.tem_acesso() and path like 'reprog/%');

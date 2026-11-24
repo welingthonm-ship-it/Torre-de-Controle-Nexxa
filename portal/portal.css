@@ -516,3 +516,11 @@ tr.nx-jan-row td{background:#FFF4F2}
 .nx-at-tab tr.nx-at-ok td{opacity:.75}
 @media (prefers-reduced-motion:reduce){.nx-at-tab tr.nx-at-pisca td{animation:none;background:#FEF3F2}}
 .nx-lg-fim{color:#fff;background:#067647}
+/* 1.8 Reprogramações */
+.nx-rp .nx-ov-h{flex-wrap:wrap}
+.nx-rp-tab{margin:6px 0}
+.nx-rp-tab td{vertical-align:middle}
+.nx-rp-tab tr.nx-rp-pend td{background:#FFFAEB}
+.nx-rp-vok{color:#067647;font-size:12px;font-weight:600}
+.nx-rp-vpend{color:#B54708;font-size:12px;font-weight:600}
+.nx-rp .nx-ov-form input.nx-date{min-width:0}

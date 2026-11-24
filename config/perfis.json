@@ -14,6 +14,7 @@
         "mapa",
         "pendencias",
         "atrasos",
+        "reprogramacoes",
         "transportadoras",
         "motoristas",
         "variavel",
@@ -37,6 +38,7 @@
         "mapa",
         "pendencias",
         "atrasos",
+        "reprogramacoes",
         "transportadoras",
         "motoristas",
         "consulta-cliente",
@@ -67,6 +69,7 @@
         "mapa",
         "pendencias",
         "atrasos",
+        "reprogramacoes",
         "transportadoras",
         "motoristas",
         "variavel",
@@ -100,6 +103,14 @@
         "treinamento"
       ],
       "com_senha": true
+    },
+    "programacao": {
+      "nome": "Programação (Reprogramações)",
+      "abas": [
+        "reprogramacoes",
+        "consulta-cliente",
+        "consulta-carga"
+      ]
     }
   }
 }

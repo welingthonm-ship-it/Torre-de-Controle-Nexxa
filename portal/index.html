@@ -12,6 +12,7 @@
 <button type='button' role='tab' data-tab='mapa' aria-selected='false' data-nome='Mapa de entregas' title='Mapa de entregas'><span class='nx-n'>1.5</span> <span class='nx-lab'>Mapa de entregas</span></button>
 <button type='button' role='tab' data-tab='pendencias' aria-selected='false' data-nome='Ocorrências do dia' title='Ocorrências do dia'><span class='nx-n'>1.6</span> <span class='nx-lab'>Ocorrências do dia</span><span class='nx-ov-badge' data-draw='ocValN' data-source='entregas_cliente' title='Ocorrências aguardando validação'></span></button>
 <button type='button' role='tab' data-tab='atrasos' aria-selected='false' data-nome='Atrasos previstos' title='Atrasos previstos'><span class='nx-n'>1.7</span> <span class='nx-lab'>Atrasos previstos</span><span class='nx-ov-badge' data-draw='atN' data-source='entregas_cliente' title='Entregas com atraso previsto sem alerta'></span></button>
+<button type='button' role='tab' data-tab='reprogramacoes' aria-selected='false' data-nome='Reprogramações' title='Reprogramações'><span class='nx-n'>1.8</span> <span class='nx-lab'>Reprogramações</span><span class='nx-ov-badge' data-draw='rpN' data-source='entregas_cliente' title='Reprogramações aguardando validação'></span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>2</span> Rankings</div>
 <button type='button' role='tab' data-tab='transportadoras' aria-selected='false' data-nome='Ranking de transportadoras' title='Ranking de transportadoras'><span class='nx-n'>2.1</span> <span class='nx-lab'>Transportadoras</span></button>
@@ -629,6 +630,21 @@
 <tbody data-draw='atList' data-source='entregas_cliente'></tbody>
 </table>
 </div>
+</section>
+</section>
+<section id='reprogramacoes' class='nx-tab tc' role='tabpanel' aria-label='Reprogramações' hidden>
+<p class='tc-lead'>Pedidos com alerta de reprogramação para o dia seguinte (reprogramado, carro quebrado – segue amanhã, excesso de volumes). A Programação confere cada pedido, informa a data programada e valida. Enquanto houver pedido sem validação, a aba 1.8 pisca.</p>
+<section class='tc-sec'>
+<p class='nx-ov-tot' data-draw='rpTot' data-source='entregas_cliente'>—</p>
+<div class='tc-ctrl nx-ov-filtros'>
+<div class='nx-chips' role='group' aria-label='Situação'>
+<button type='button' class='nx-chip' data-rp-sit='pend'>Aguardando validação <span data-draw='rpFN' data-k='pend' data-source='entregas_cliente'></span></button>
+<button type='button' class='nx-chip' data-rp-sit='val'>Validadas <span data-draw='rpFN' data-k='val' data-source='entregas_cliente'></span></button>
+<button type='button' class='nx-chip' data-rp-sit='todas'>Todas <span data-draw='rpFN' data-k='todas' data-source='entregas_cliente'></span></button>
+</div>
+<label>Buscar <input type='search' class='nx-input' id='rp-busca' placeholder='Rota, motorista, cliente ou transportadora' aria-label='Buscar reprogramações'></label>
+</div>
+<div class='nx-ov-list' data-draw='rpList' data-source='entregas_cliente'></div>
 </section>
 </section>
 <section id='logs' class='nx-tab tc' role='tabpanel' aria-label='Log de alterações' hidden>
@@ -2388,6 +2404,7 @@ el.append(q); }
 <script src='rtprior.js'></script>
 <script src='logs.js'></script>
 <script src='atrasos.js'></script>
+<script src='reprog.js'></script>
 <script src='ocval.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>
