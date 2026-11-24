@@ -14,6 +14,7 @@ const diaSeg = (iso) => { const a = String(iso || '').slice(0, 10).split('-').ma
 const fd = (iso) => (iso ? iso.split('-').reverse().slice(0, 2).join('/') : '—');
 
 // pedidos reprogramados (ainda não entregues)
+TC.rpVolRe = /volume[s]?\s*(excedid|em\s*excesso)|exce(sso|dente)\s*de\s*volume|exced\w*\s*volume/i;
 TC.rpLista = () => {
   const g = dash.data('entregas_cliente'); if (g.status !== 'ok') return null;
   const out = [];
@@ -22,8 +23,12 @@ TC.rpLista = () => {
     if (/^REPO/i.test(String(r.rota || ''))) return;   // rotas de reposição ficam fora
     const al = TC.alDaEntrega(r);
     // carga inteira que não saiu do CD no dia (stand-by, sem expedição) também é reprogramação
-    const naoSaiu = !(al && TC.alProxDia[al.tipo]) && r.status_rota === 'StandBy' && !r.saida_cd && r.data < TC.hojeISO();
-    if (!(al && TC.alProxDia[al.tipo]) && !naoSaiu) return;
+    const reprogAl = al && (TC.alProxDia[al.tipo] || TC.rpVolRe.test(al.obs || ''));
+    // motivo "volume excedido" registrado pelo motorista na entrega (ocorrência ou comentário do app)
+    const vol = !reprogAl && TC.rpVolRe.test((r.ocorrencia || '') + ' ' + (r.comentario || ''));
+    if (vol) { out.push({r, al: null, vol: true, nova: diaSeg(r.data), prev: '', v: TC.rpVal.get(chave(r.id))}); return; }
+    const naoSaiu = !reprogAl && r.status_rota === 'StandBy' && !r.saida_cd && r.data < TC.hojeISO();
+    if (!reprogAl && !naoSaiu) return;
     if (naoSaiu) { out.push({r, al: null, naoSaiu: true, nova: diaSeg(r.data), prev: '', v: TC.rpVal.get(chave(r.id))}); return; }
     const p = TC.prevAtual(r);
     const nova = p && p.tipo === 'reprog' && p.dt ? String(p.dt).slice(0, 10) : diaSeg(al.em ? isoDe(new Date(al.em)) : r.data);
@@ -33,7 +38,7 @@ TC.rpLista = () => {
 };
 const grupos = (L) => {
   const m = new Map();
-  L.forEach((x) => { const k = x.r.data + '|' + x.r.rota; if (!m.has(k)) m.set(k, {k, data: x.r.data, rota: x.r.rota, r0: x.r, al: x.al, naoSaiu: !!x.naoSaiu, itens: []}); m.get(k).itens.push(x); });
+  L.forEach((x) => { const k = x.r.data + '|' + x.r.rota; if (!m.has(k)) m.set(k, {k, data: x.r.data, rota: x.r.rota, r0: x.r, al: x.al, naoSaiu: !!x.naoSaiu, vol: false, itens: []}); if (x.vol) m.get(k).vol = true; m.get(k).itens.push(x); });
   const G = Array.from(m.values());
   G.forEach((g) => { g.itens.sort((a, b) => (+a.r.seq_planejada || 0) - (+b.r.seq_planejada || 0)); g.pend = g.itens.filter((x) => !x.v).length;
     const tot = g.itens.length ? (dash.data('entregas_cliente').data || []).filter((r) => r.data === g.data && r.rota === g.rota && !TC.isEnt(r)).length : 0;
@@ -78,8 +83,9 @@ dash.draw('rpList', (box) => {
   box.replaceChildren(...G.map((g) => {
     const c = el('div', 'nx-ov nx-rp' + (g.pend ? ' is-pend' : ' is-ok'));
     const h = el('div', 'nx-ov-h');
-    h.append(g.al ? TC.alBadge(g.al) : el('span', 'nx-rp-tag', 'Não expedida (stand-by)'), g.inteira ? el('span', 'nx-rp-inteira', 'Carga inteira · ' + g.itens.length + ' pedido' + (g.itens.length === 1 ? '' : 's')) : el('span', 'nx-rp-parcial', 'Parcial · ' + g.itens.length + ' pedido' + (g.itens.length === 1 ? '' : 's')), el('b', '', 'Rota ' + g.rota + ' · ' + TC.fdt(g.data).slice(0, 5)), el('span', '', (g.r0.transportadora || '—') + ' · ' + (g.r0.motorista || 'motorista não informado') + (g.r0.placa ? ' · ' + g.r0.placa : '')));
+    h.append(g.al ? TC.alBadge(g.al) : el('span', 'nx-rp-tag', g.vol ? 'Volume excedido' : 'Não expedida (stand-by)'), g.inteira ? el('span', 'nx-rp-inteira', 'Carga inteira · ' + g.itens.length + ' pedido' + (g.itens.length === 1 ? '' : 's')) : el('span', 'nx-rp-parcial', 'Parcial · ' + g.itens.length + ' pedido' + (g.itens.length === 1 ? '' : 's')), el('b', '', 'Rota ' + g.rota + ' · ' + TC.fdt(g.data).slice(0, 5)), el('span', '', (g.r0.transportadora || '—') + ' · ' + (g.r0.motorista || 'motorista não informado') + (g.r0.placa ? ' · ' + g.r0.placa : '')));
     c.append(h);
+    if (g.vol) c.append(el('div', 'nx-ov-com', 'Motivo registrado na entrega: volume excedido. ' + Array.from(new Set(g.itens.map((x) => x.r.comentario).filter(Boolean))).slice(0, 3).join(' · ')));
     if (g.naoSaiu) c.append(el('div', 'nx-ov-com', 'A rota ficou em stand-by e não teve saída do CD no dia: a carga inteira passa para o dia seguinte.'));
     if (g.al && g.al.obs) c.append(el('div', 'nx-ov-com', 'Alerta: ' + g.al.obs + (g.al.em ? ' (registrado em ' + new Date(g.al.em).toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'}) + ')' : '')));
     const tb = el('table', 'tc-table nx-rp-tab');
@@ -118,9 +124,9 @@ dash.draw('rpList', (box) => {
           const d = await db(); if (!d) throw new Error('sem banco');
           const em = new Date().toISOString();
           for (const x of sel) {
-            await d.doc('reprog/' + chave(x.r.id)).set({id: x.r.id, data: x.r.data, rota: x.r.rota, codigo: x.r.codigo || '', cliente: x.r.cliente || '', transportadora: x.r.transportadora || '', tipo: g.al ? g.al.tipo : 'nao_expedida', inteira: !!g.inteira, nova_data: dt.value, obs: ob.value.trim(), em, por_nome: quem});
+            await d.doc('reprog/' + chave(x.r.id)).set({id: x.r.id, data: x.r.data, rota: x.r.rota, codigo: x.r.codigo || '', cliente: x.r.cliente || '', transportadora: x.r.transportadora || '', tipo: g.al ? g.al.tipo : g.vol ? 'volume_excedido' : 'nao_expedida', inteira: !!g.inteira, nova_data: dt.value, obs: ob.value.trim(), em, por_nome: quem});
           }
-          if (TC.log) TC.log(g.inteira ? 'Reprogramação validada (carga inteira)' : 'Reprogramação validada', {data: g.data, rota: g.rota, detalhe: (g.naoSaiu ? 'Não expedida · ' : '') + 'Programado para ' + fd(dt.value) + ' · ' + TC.logClientes(g.data, g.rota, sel.map((x) => x.r.id)) + (ob.value.trim() ? ' · ' + ob.value.trim() : '')});
+          if (TC.log) TC.log(g.inteira ? 'Reprogramação validada (carga inteira)' : 'Reprogramação validada', {data: g.data, rota: g.rota, detalhe: (g.vol ? 'Volume excedido · ' : g.naoSaiu ? 'Não expedida · ' : '') + 'Programado para ' + fd(dt.value) + ' · ' + TC.logClientes(g.data, g.rota, sel.map((x) => x.r.id)) + (ob.value.trim() ? ' · ' + ob.value.trim() : '')});
         } catch (e) { er.textContent = 'Não foi possível salvar (seu acesso pode não permitir).'; er.hidden = false; bt.disabled = false; }
       };
       fm.append(l1, l2, bt, er); c.append(fm);
