@@ -85,19 +85,18 @@ dash.draw('rsOcResp', (box) => {
   const c = TC.rsCalc ? TC.rsCalc() : null;
   box.replaceChildren(); if (!c || !c.rows.length) return;
   const oc = c.rows.filter((r) => r.ocorrencia);
-  // Atrasos (entregas fora da janela) = Logística; Falta e Avaria = Transporte, salvo outra área definida na validação
-  const atr = c.rows.filter((r) => r.sla_janela === 'NÃO').length;
-  if (!oc.length && !atr) return;
-  const m = new Map(); TC.ocResp.forEach((a) => m.set(a, 0)); m.set('Nexxa-Logistica', atr);
+  // Só ocorrências (atrasos não entram). Falta e Avaria = Transporte, salvo outra área definida na validação
+  if (!oc.length) return;
+  const m = new Map(); TC.ocResp.forEach((a) => m.set(a, 0));
   oc.forEach((r) => { const v = TC.ocVal.get(chave(r.id)); const k = v && v.responsavel ? v.responsavel : /^(Falta|Avaria)$/i.test(r.ocorrencia) ? 'Nexxa-Transporte' : v ? 'Validada sem área' : 'Sem validação'; m.set(k, (m.get(k) || 0) + 1); });
-  const totOc = oc.length + atr;
+  const totOc = oc.length;
   const tot = c.rows.length;
   Array.from(m.entries()).filter(([k, n]) => n > 0 || TC.ocResp.includes(k)).forEach(([k, n]) => {
     const row = el('div', 'nx-ocr-row' + (k === 'Sem validação' ? ' is-pend' : n ? '' : ' is-zero'));
     const pc = tot ? n / tot * 100 : 0, sh = totOc ? n / totOc * 100 : 0;
     const bar = el('i', 'nx-ocr-bar'); const f = el('b'); f.style.width = Math.min(100, sh) + '%'; bar.append(f);
-    row.append(el('span', 'nx-ocr-k', k === 'Nexxa-Logistica' ? 'Logística (atrasos)' : k.replace('Nexxa-', '')), bar, el('span', 'nx-ocr-v', pc.toFixed(pc && pc < 1 ? 2 : 1).replace('.', ',') + '% (' + n + ')'));
-    row.title = k + ': ' + n + (k === 'Nexxa-Logistica' ? ' (' + atr + ' entrega(s) fora da janela + ' + (n - atr) + ' ocorrência(s) validadas)' : ' ocorrência(s)' + (k === 'Nexxa-Transporte' ? ' (falta e avaria contam como Transporte)' : '')) + ', ' + sh.toFixed(0) + '% dos problemas e ' + pc.toFixed(1).replace('.', ',') + '% das entregas do filtro';
+    row.append(el('span', 'nx-ocr-k', k.replace('Nexxa-', '')), bar, el('span', 'nx-ocr-v', pc.toFixed(pc && pc < 1 ? 2 : 1).replace('.', ',') + '% (' + n + ')'));
+    row.title = k + ': ' + n + ' ocorrência(s)' + (k === 'Nexxa-Transporte' ? ' (falta e avaria contam como Transporte)' : '') + ', ' + sh.toFixed(0) + '% das ocorrências e ' + pc.toFixed(1).replace('.', ',') + '% das entregas do filtro';
     box.append(row);
   });
 });
