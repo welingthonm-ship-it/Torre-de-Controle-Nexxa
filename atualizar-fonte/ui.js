@@ -12,7 +12,7 @@ window.NXU = (function () {
   async function alertas() {
     var db = await use('db'); if (!db) return {};
     var snap = await db.collection('alertas').get(), m = {};
-    snap.docs.forEach(function (d) { var a = d.data(); if (!a || !a.data || !a.rota) return; if (a.escopo === 'clientes') { (a.ids || []).forEach(function (id) { var k = 'id:' + a.data + '|' + a.rota + '|' + id; if (!m[k] || String(a.em || '') > String(m[k].em || '')) m[k] = a; }); } else m[a.data + '|' + a.rota] = a; });
+    snap.docs.forEach(function (d) { var a = d.data(); if (!a || !a.data || !a.rota) return; if (a.escopo === 'baixa') { (a.ids || []).forEach(function (id) { m['bx:' + a.data + '|' + a.rota + '|' + id] = a; }); return; } if (a.escopo === 'clientes') { (a.ids || []).forEach(function (id) { var k = 'id:' + a.data + '|' + a.rota + '|' + id; if (!m[k] || String(a.em || '') > String(m[k].em || '')) m[k] = a; }); } else m[a.data + '|' + a.rota] = a; });
     return m;
   }
 

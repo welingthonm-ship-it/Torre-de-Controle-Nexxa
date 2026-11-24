@@ -1326,7 +1326,13 @@ return m;
 T.psPill = (k, n, curto) => { const b = document.createElement('span'); b.className = 'nx-ps nx-ps-' + k; b.textContent = (curto ? {hoje: 'Hoje', atr: 'Atrasada', fut: 'Dia à frente'}[k] : T.psNomes[k]) + (n == null ? '' : ' ' + T.fmt(n, 'int')); return b; };
 T.psCell = (td, n, k) => { td.textContent = n ? T.fmt(n, 'int') : '—'; if (n) td.classList.add('nx-ps-n-' + k); };
 T.psRow = (box, c) => { box.replaceChildren(...['hoje', 'atr', 'fut'].map((k) => T.psPill(k, c[k]))); };
-T.bxDe = (r) => { const m = window.__nxAl; if (!m || !r || r.entregue === 'SIM') return null; const a = m.get(r.data + '|' + r.rota); return a && a.tipo === 'baixa_manual' && (!a.ids || !a.ids.length || a.ids.includes(r.id)) ? a : null; };
+T.bxDe = (r) => { if (!r || r.entregue === 'SIM') return null;
+const B = window.__nxAlBx; if (B) for (const a of B.values()) { if (a.data === r.data && a.rota === r.rota && (a.ids || []).includes(r.id)) return a; }
+const m = window.__nxAl; if (!m) return null; const a = m.get(r.data + '|' + r.rota); return a && a.tipo === 'baixa_manual' && (!a.ids || !a.ids.length || a.ids.includes(r.id)) ? a : null; };
+// baixas manuais por rota (corrige concluídas/pendentes antes da próxima atualização)
+T.bxN = (r) => { const g = dash.data('entregas_cliente'); if (g.status !== 'ok') return 0;
+if (!T.__bxc || T.__bxc.g !== g.data || T.__bxc.v !== T.__bxv) { const m = new Map(); g.data.forEach((x) => { if (x.entregue !== 'SIM' && T.bxDe(x)) { const k = x.data + '|' + x.rota; m.set(k, (m.get(k) || 0) + 1); } }); T.__bxc = {g: g.data, v: T.__bxv, m}; }
+return T.__bxc.m.get(r.data + '|' + r.rota) || 0; };
 T.isEnt = (r) => r.entregue === 'SIM' || !!T.bxDe(r);
 T.sitDe = (r) => (T.bxDe(r) ? 'Entregue (baixa manual)' : r.situacao);
 T.SAIDA_MIN = 30;
@@ -1537,11 +1543,11 @@ const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.cl
 td(TC.short(r.data)); td(r.rota); td(r.transportadora);
 const st = td(''); const b = document.createElement('span'); b.className = 'tc-badge ' + (TC.stClass[r.status_rota] || 'tc-b-oth'); b.textContent = TC.stLabel[r.status_rota] || r.status_rota; st.append(b);
 td(r.inicio || '—'); td(r.fim || '—');
-td(TC.fmt(r.entregas, 'int'), 'n'); td(TC.fmt(r.concluidas, 'int'), 'n'); td(TC.fmt(r.pendentes, 'int'), 'n');
+const bxn = TC.bxN ? TC.bxN(r) : 0; td(TC.fmt(r.entregas, 'int'), 'n'); const cc = td(TC.fmt(+r.concluidas + bxn, 'int'), 'n'); if (bxn) cc.title = 'Inclui ' + bxn + ' baixa(s) manual(is)'; td(TC.fmt(Math.max(0, +r.pendentes - bxn), 'int'), 'n');
 { const ps = (TC.psPor(function rotaKey(x) { return x.data + '|' + x.rota; }) || new Map()).get(r.data + '|' + r.rota) || {hoje: 0, atr: 0, fut: 0}; ['hoje', 'atr', 'fut'].forEach((k) => TC.psCell(td('', 'n'), ps[k], k)); }
 const pc = td(''); const wrap = document.createElement('span'); wrap.className = 'tc-prog';
 const bar = document.createElement('i'); const fill = document.createElement('b');
-const p = TC.num(r.pct_concluidas) || 0; fill.style.width = p + '%';
+const p = bxn && +r.entregas ? Math.min(100, (+r.concluidas + bxn) / +r.entregas * 100) : (TC.num(r.pct_concluidas) || 0); fill.style.width = p + '%';
 fill.style.background = p >= 100 ? 'var(--color-ok)' : p >= 50 ? TC.pal[0] : 'var(--color-warn)';
 bar.append(fill); const lbl = document.createElement('span'); lbl.textContent = TC.fmt(r.pct_concluidas, 'pct');
 wrap.append(bar, lbl); pc.append(wrap);
@@ -2238,6 +2244,7 @@ TC.alDe = (data, rota) => TC.al.get(data + '|' + rota) || null;
 TC.logClientes = (data, rota, ids) => { const g = dash.data('entregas_cliente'), m = new Map((g.status === 'ok' ? g.data : []).filter((r) => r.data === data && r.rota === rota).map((r) => [r.id, r.codigo ? r.codigo + ' ' + (r.cliente || '') : (r.cliente || r.id)])); const L = ids.map((id) => m.get(id) || id); return L.length + (L.length === 1 ? ' cliente: ' : ' clientes: ') + L.slice(0, 8).join(', ') + (L.length > 8 ? '…' : ''); };
 // Alertas por cliente (escopo "clientes"): valem só para as entregas marcadas.
 TC.alCli = W.__nxAlCli || new Map(); W.__nxAlCli = TC.alCli;
+TC.alBx = W.__nxAlBx || new Map(); W.__nxAlBx = TC.alBx;
 TC.alCliDe = (data, rota) => Array.from(TC.alCli.values()).filter((a) => a.data === data && a.rota === rota);
 TC.alDaEntrega = (r) => {
 if (!r) return null;
@@ -2245,7 +2252,7 @@ const c = TC.alCliDe(r.data, r.rota).filter((a) => (a.ids || []).includes(r.id))
 return c || TC.alDe(r.data, r.rota);
 };
 TC.alBadge = (a) => { const b = document.createElement('span'); b.className = 'nx-al nx-al-' + (TC.alTipos[a.tipo] ? a.tipo : 'outro'); b.textContent = TC.alTipos[a.tipo] || 'Alerta'; if (a.obs) b.title = a.obs; return b; };
-TC.alRedraw = () => { dash.draw('alCliExist'); dash.draw('rtPrior'); dash.draw('rsRoads'); TC.psCache = {}; TC.rsC = null; TC.mpCache = null; ['rotas', 'pend', 'cliEnt', 'entAlerta', 'entSit', 'entPrev', 'tvRotas', 'alRota', 'alBxList', 'pdList', 'pdN', 'csList', 'csN', 'csTab', 'rtClsN', 'psDia', 'psTv', 'psCli', 'mapa', 'mpN', 'dnK', 'dnRes', 'dnAgenda', 'dnRotas'].forEach((n) => dash.draw(n)); if (TC.rsRedraw) TC.rsRedraw(); if (TC.cgRedraw) TC.cgRedraw(); };
+TC.alRedraw = () => { TC.__bxv = (TC.__bxv || 0) + 1; dash.draw('alCliExist'); dash.draw('rtPrior'); dash.draw('rsRoads'); TC.psCache = {}; TC.rsC = null; TC.mpCache = null; ['rotas', 'pend', 'cliEnt', 'entAlerta', 'entSit', 'entPrev', 'tvRotas', 'alRota', 'alBxList', 'pdList', 'pdN', 'csList', 'csN', 'csTab', 'rtClsN', 'psDia', 'psTv', 'psCli', 'mapa', 'mpN', 'dnK', 'dnRes', 'dnAgenda', 'dnRotas'].forEach((n) => dash.draw(n)); if (TC.rsRedraw) TC.rsRedraw(); if (TC.cgRedraw) TC.cgRedraw(); };
 TC.alEdit = null;
 const msgs = (k) => ['al-msg-salvando', 'al-msg-obs', 'al-msg-erro', 'al-msg-bx', 'al-msg-cli'].forEach((id) => document.querySelectorAll('#' + id).forEach((e) => { e.hidden = id !== k; }));
 TC.alEsc = () => { const r = document.querySelector("input[name='al-escopo']:checked"); return r ? r.value : 'rota'; };
@@ -2266,6 +2273,7 @@ dash.draw('alRota'); dash.draw('alCliExist');
 };
 TC.alBxVis = () => {
 const t = (document.getElementById('al-tipo') || {}).value, bx = t === 'baixa_manual', cli = !bx && TC.alEsc() === 'clientes';
+if (bx && TC.alEdit) { const pa = TC.alDe(TC.alEdit.data, TC.alEdit.rota); document.querySelectorAll('#al-obs').forEach((o) => { if (pa && pa.tipo !== 'baixa_manual' && o.value === (pa.obs || '')) o.value = ''; }); }
 document.querySelectorAll('#al-escopo').forEach((e) => { e.hidden = bx; });
 document.querySelectorAll('#al-bx').forEach((e) => { e.hidden = !(bx || cli); });
 document.querySelectorAll('#al-bx-txt, #al-bx-em-l').forEach((e) => { e.hidden = !bx; });
@@ -2305,7 +2313,17 @@ if (tipo === 'baixa_manual') {
 const ids = Array.from(document.querySelectorAll('#al-bx .nx-bx-list input[type=checkbox][data-id]')).filter((c) => c.checked).map((c) => c.dataset.id);
 const em = ((document.getElementById('al-bx-em') || {}).value || '').replace('T', ' ').slice(0, 16);
 if (!ids.length || !/^\d{4}-\d\d-\d\d \d\d:\d\d$/.test(em)) { msgs('al-msg-bx'); return; }
-extra = {ids, entregue_em: em};
+// baixa manual fica num registro próprio: não substitui o alerta da rota e soma com baixas anteriores
+msgs('al-msg-salvando'); b.disabled = true;
+try {
+const d = await db(); if (!d) throw new Error('sem db');
+const agora = new Date().toISOString();
+await d.doc('alertas/' + TC.alId(e.data, e.rota) + '__bx' + Date.now().toString(36)).set({data: e.data, rota: e.rota, tipo: 'baixa_manual', escopo: 'baixa', obs, ids, entregue_em: em, em: agora, editado_em: agora});
+if (TC.log) TC.log('Baixa manual', {data: e.data, rota: e.rota, detalhe: 'Entregue em ' + em.split(' ')[0].split('-').reverse().join('/') + ' ' + em.split(' ')[1] + ' · ' + TC.logClientes(e.data, e.rota, ids) + (obs ? ' · ' + obs : '')});
+fechar();
+} catch (err) { msgs('al-msg-erro'); }
+b.disabled = false;
+return;
 }
 msgs('al-msg-salvando'); b.disabled = true;
 try {
@@ -2332,8 +2350,8 @@ if (W.__nxAlUnsub) { try { W.__nxAlUnsub(); } catch (e) { /* segue */ } }
 db().then((d) => {
 if (!d) return;
 W.__nxAlUnsub = d.collection('alertas').onSnapshot((snap) => {
-TC.al.clear(); TC.alCli.clear();
-snap.docs.forEach((doc) => { const a = doc.data(); if (!a || !a.data || !a.rota) return; if (a.escopo === 'clientes') TC.alCli.set(doc.id, Object.assign({_id: doc.id}, a)); else TC.al.set(a.data + '|' + a.rota, a); });
+TC.al.clear(); TC.alCli.clear(); TC.alBx.clear();
+snap.docs.forEach((doc) => { const a = doc.data(); if (!a || !a.data || !a.rota) return; if (a.escopo === 'clientes') TC.alCli.set(doc.id, Object.assign({_id: doc.id}, a)); else if (a.escopo === 'baixa') TC.alBx.set(doc.id, Object.assign({_id: doc.id}, a)); else TC.al.set(a.data + '|' + a.rota, a); });
 TC.alRedraw();
 }, () => {});
 });
@@ -2345,7 +2363,7 @@ dash.draw('alBxList', (box) => {
 const e = TC.alEdit, g = dash.data('entregas_cliente');
 box.replaceChildren();
 if (!e || g.status !== 'ok') return;
-const rows = g.data.filter((r) => r.data === e.data && r.rota === e.rota && r.entregue !== 'SIM').sort((a, b) => +a.seq_planejada - +b.seq_planejada);
+const rows = g.data.filter((r) => r.data === e.data && r.rota === e.rota && r.entregue !== 'SIM' && !((TC.bxDe(r) || {}).escopo === 'baixa')).sort((a, b) => +a.seq_planejada - +b.seq_planejada);
 if (!rows.length) { const p = document.createElement('p'); p.className = 'tc-sub'; p.textContent = 'Esta rota não tem entregas pendentes no relatório.'; box.append(p); return; }
 const head = document.createElement('label'); head.className = 'nx-bx-all';
 const all = document.createElement('input'); all.type = 'checkbox';
@@ -2363,14 +2381,14 @@ box.append(head, ...items);
 });
 dash.draw('alCliExist', (box) => {
 const e = TC.alEdit; box.replaceChildren(); if (!e) return;
-const L = TC.alCliDe(e.data, e.rota); if (!L.length) return;
+const L = TC.alCliDe(e.data, e.rota).concat(Array.from(TC.alBx.values()).filter((a) => a.data === e.data && a.rota === e.rota)); if (!L.length) return;
 const g = dash.data('entregas_cliente'), nome = new Map((g.status === 'ok' ? g.data : []).filter((r) => r.data === e.data && r.rota === e.rota).map((r) => [r.id, (r.codigo || '') + ' ' + (r.cliente || '')]));
-const h = document.createElement('div'); h.className = 'tc-sub'; h.textContent = 'Alertas por cliente nesta rota:'; box.append(h);
+const h = document.createElement('div'); h.className = 'tc-sub'; h.textContent = 'Alertas por cliente e baixas manuais nesta rota:'; box.append(h);
 L.forEach((a) => {
 const row = document.createElement('div'); row.className = 'nx-al-cli-row';
-const t = document.createElement('span'); t.textContent = ' ' + (a.ids || []).map((id) => nome.get(id) || id).join(', ') + (a.obs ? ' · ' + a.obs : '');
+const t = document.createElement('span'); t.textContent = ' ' + (a.escopo === 'baixa' && a.entregue_em ? 'entregue em ' + a.entregue_em.slice(8, 10) + '/' + a.entregue_em.slice(5, 7) + ' ' + a.entregue_em.slice(11, 16) + ': ' : '') + (a.ids || []).map((id) => nome.get(id) || id).join(', ') + (a.obs ? ' · ' + a.obs : '');
 row.append(TC.alBadge(a), t);
-if (TC.alPode) { const x = document.createElement('button'); x.type = 'button'; x.className = 'nx-al-btn'; x.textContent = 'Remover'; x.onclick = async () => { try { const d = await db(); await d.doc('alertas/' + a._id).delete(); if (TC.log) TC.log('Alerta por cliente removido', {data: a.data, rota: a.rota, detalhe: (TC.alTipos[a.tipo] || a.tipo) + ' · ' + TC.logClientes(a.data, a.rota, a.ids || [])}); } catch (err) { msgs('al-msg-erro'); } }; row.append(x); }
+if (TC.alPode) { const x = document.createElement('button'); x.type = 'button'; x.className = 'nx-al-btn'; x.textContent = 'Remover'; x.onclick = async () => { try { const d = await db(); await d.doc('alertas/' + a._id).delete(); if (TC.log) TC.log(a.escopo === 'baixa' ? 'Baixa manual removida' : 'Alerta por cliente removido', {data: a.data, rota: a.rota, detalhe: (TC.alTipos[a.tipo] || a.tipo) + ' · ' + TC.logClientes(a.data, a.rota, a.ids || [])}); } catch (err) { msgs('al-msg-erro'); } }; row.append(x); }
 box.append(row);
 });
 });

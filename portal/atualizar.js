@@ -434,7 +434,7 @@ window.nxTransform = (function () {
     var A = alertas || {};
     return rows.map(function (r) {
       if (r.entregue === 'SIM') return r;
-      var a = A[String(r.data) + '|' + String(r.rota)];
+      var a = A['bx:' + r.data + '|' + r.rota + '|' + r.id] || A[String(r.data) + '|' + String(r.rota)];
       if (!a || a.tipo !== 'baixa_manual' || (a.ids && a.ids.length && a.ids.indexOf(r.id) < 0)) return r;
       var em = a.entregue_em || '';
       return Object.assign({}, r, { entregue: 'SIM', situacao: 'Entregue (baixa manual)', chegada_real: r.chegada_real || em, inicio_atend: r.inicio_atend || em, fim_atend: r.fim_atend || em, comentario: (r.comentario ? r.comentario + ' · ' : '') + 'Baixa manual pelo monitoramento (falha no app)' + (a.obs ? ': ' + a.obs : '') });
@@ -489,7 +489,7 @@ window.NXU = (function () {
   async function alertas() {
     var db = await use('db'); if (!db) return {};
     var snap = await db.collection('alertas').get(), m = {};
-    snap.docs.forEach(function (d) { var a = d.data(); if (!a || !a.data || !a.rota) return; if (a.escopo === 'clientes') { (a.ids || []).forEach(function (id) { var k = 'id:' + a.data + '|' + a.rota + '|' + id; if (!m[k] || String(a.em || '') > String(m[k].em || '')) m[k] = a; }); } else m[a.data + '|' + a.rota] = a; });
+    snap.docs.forEach(function (d) { var a = d.data(); if (!a || !a.data || !a.rota) return; if (a.escopo === 'baixa') { (a.ids || []).forEach(function (id) { m['bx:' + a.data + '|' + a.rota + '|' + id] = a; }); return; } if (a.escopo === 'clientes') { (a.ids || []).forEach(function (id) { var k = 'id:' + a.data + '|' + a.rota + '|' + id; if (!m[k] || String(a.em || '') > String(m[k].em || '')) m[k] = a; }); } else m[a.data + '|' + a.rota] = a; });
     return m;
   }
 
