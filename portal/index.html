@@ -2525,7 +2525,10 @@ for (const id of ids) {
 await d.doc('alertas/' + TC.alId(a.data, a.rota) + '/informados/' + TC.csPedKey(id)).set({data: a.data, rota: a.rota, pedido: id, em, por});
 TC.csSel.delete(TC.csInfKey(a, id));
 }
-if (TC.log) TC.log('Cliente informado', {data: a.data, rota: a.rota, detalhe: TC.logClientes(a.data, a.rota, ids)});
+if (TC.log) TC.log('Cliente informado', {data: a.data, rota: a.rota, detalhe: (TC.alTipos[a.tipo] || a.tipo) + ' · ' + TC.logClientes(a.data, a.rota, ids)});
+// todos os clientes do alerta avisados: o alerta sai da lista "a informar" — registra quem concluiu e quando
+{ const x = (TC.csDados().lista || []).find((y) => y.a === a || (y.a.data === a.data && y.a.rota === a.rota && y.a.em === a.em && y.a.escopo === a.escopo));
+if (x && x.peds.length && !x.peds.some((p) => !ids.includes(p.id) && !TC.csInf(a, p.id)) && TC.log) TC.log('Alerta concluído – todos os clientes avisados', {data: a.data, rota: a.rota, detalhe: (TC.alTipos[a.tipo] || a.tipo) + (a.escopo === 'clientes' ? ' (por cliente)' : '') + ' · ' + x.peds.length + (x.peds.length === 1 ? ' cliente avisado' : ' clientes avisados') + ' · concluído em ' + new Date().toLocaleString('pt-BR', {day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'})}); }
 } else {
 if (TC.log) TC.log('Cliente informado desmarcado', {data: a.data, rota: a.rota, detalhe: TC.logClientes(a.data, a.rota, ids)});
 for (const id of ids) { if (TC.csInfMap.has(TC.csInfKey(a, id))) await d.doc('alertas/' + TC.alId(a.data, a.rota) + '/informados/' + TC.csPedKey(id)).delete(); }

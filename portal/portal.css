@@ -515,3 +515,4 @@ tr.nx-jan-row td{background:#FFF4F2}
 .nx-at-tab tr.nx-at-pisca td{animation:nxAtPisca 1.4s ease-in-out infinite}
 .nx-at-tab tr.nx-at-ok td{opacity:.75}
 @media (prefers-reduced-motion:reduce){.nx-at-tab tr.nx-at-pisca td{animation:none;background:#FEF3F2}}
+.nx-lg-fim{color:#fff;background:#067647}

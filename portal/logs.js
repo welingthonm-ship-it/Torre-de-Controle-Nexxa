@@ -85,7 +85,7 @@ dash.draw('lgList', (tb) => {
     const tr = document.createElement('tr');
     const td = (t, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; c.textContent = t; tr.append(c); return c; };
     td(fdh(r.em), 'nx-lg-em'); td(r.por_nome || '(sem nome)');
-    const a = td(''); const s = document.createElement('span'); s.className = 'nx-lg-acao nx-lg-' + (/remov|desmarc|desfeit/i.test(r.acao) ? 'rem' : /Entrou/.test(r.acao) ? 'ace' : /atualiz/i.test(r.acao) ? 'upd' : 'add'); s.textContent = r.acao; a.append(s);
+    const a = td(''); const s = document.createElement('span'); s.className = 'nx-lg-acao nx-lg-' + (/remov|desmarc|desfeit/i.test(r.acao) ? 'rem' : /concluído/i.test(r.acao) ? 'fim' : /Entrou/.test(r.acao) ? 'ace' : /atualiz/i.test(r.acao) ? 'upd' : 'add'); s.textContent = r.acao; a.append(s);
     td(r.rota ? r.rota + (r.data ? ' · ' + TC.fdt(r.data).slice(0, 5) : '') : '—');
     td(r.detalhe || '—', 'nx-lg-det');
     return tr;
