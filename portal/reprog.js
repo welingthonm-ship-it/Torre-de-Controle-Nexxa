@@ -19,6 +19,7 @@ TC.rpLista = () => {
   const out = [];
   g.data.forEach((r) => {
     if (TC.isEnt(r) || TC.zerada(r) || r.situacao === 'Devolução total') return;
+    if (/^REPO/i.test(String(r.rota || ''))) return;   // rotas de reposição ficam fora
     const al = TC.alDaEntrega(r);
     // carga inteira que não saiu do CD no dia (stand-by, sem expedição) também é reprogramação
     const naoSaiu = !(al && TC.alProxDia[al.tipo]) && r.status_rota === 'StandBy' && !r.saida_cd && r.data < TC.hojeISO();
