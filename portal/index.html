@@ -2423,6 +2423,7 @@ el.append(q); }
 <script src='logs.js'></script>
 <script src='atrasos.js'></script>
 <script src='reprog.js'></script>
+<script src='abapisca.js'></script>
 <script src='ocval.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>
@@ -2583,6 +2584,7 @@ dash.draw('csTab', (el) => {
 const D = TC.csDados(); const n = D.lista.reduce((t, x) => t + x.informar, 0);
 el.textContent = n ? String(n) : '';
 const b = el.closest('button'); if (b) b.classList.toggle('has-alert', n > 0);
+TC.csAvisoN = n; if (TC.abaPisca) TC.abaPisca();
 });
 dash.draw('csN', (el) => {
 const D = TC.csDados();
