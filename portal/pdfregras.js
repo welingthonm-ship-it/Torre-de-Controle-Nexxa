@@ -175,6 +175,16 @@ gat,
 ['Produtividade (cargas no mês)', 'SR ' + C.meta_sr + ' · TR ' + C.meta_tr + ' · demais ' + C.meta_outros + ' cargas', pc(w.prod), '+' + nb(C.bonus_prod) + '% no peso ao superar a meta de cargas'],
 ['Entregas sem atraso', '>= ' + nb(C.meta_janela) + '%', pc(w.jan), '+' + nb(C.bonus_jan) + '% no peso ' + (+C.lim_jan_plus >= 100 ? 'sem nenhum atraso (100%)' : 'a partir de ' + nb(C.lim_jan_plus) + '% sem atraso')],
 ['Ocorrências por culpa do transportador', '<= ' + nb(C.lim_oc) + '%', pc(w.oc), '+' + nb(C.bonus_oc0) + '% no peso com zero ocorrência']]},
+{t: 'h1', s: 'Faixas de premiação'},
+{t: 'p', s: 'Cada indicador paga por faixa. As cargas valem para a meta de ' + (C.meta_outros || 26) + ' (perfis com outra meta e meses com abono usam faixas proporcionais).'},
+(() => { const F = TC.varFx(), mo = +C.meta_outros || 26, bp = 1 + (+C.bonus_prod || 0) / 100, bj = 1 + (+C.bonus_jan || 0) / 100, bo = 1 + (+C.bonus_oc0 || 0) / 100;
+  const prod = F.prod.map((x, i) => [x.min + ' a ' + (F.prod[i + 1] ? F.prod[i + 1].min - 1 : mo) + ' cargas', pc(w.prod * x.f)]).concat([['Acima de ' + mo + ' cargas (plus)', pc(w.prod * bp)]]);
+  const jan = F.jan.map((x) => [x.min + '% ou mais sem atraso', pc(w.jan * x.f)]).concat([['100% sem atraso (plus)', pc(w.jan * bj)]]);
+  const oc = F.oc.map((x) => ['Até ' + nb(x.max) + '% de ocorrências', pc(w.oc * x.f)]).concat([['Zero ocorrência (plus)', pc(w.oc * bo)]]);
+  const n = Math.max(prod.length, jan.length, oc.length), rows = [];
+  for (let i = 0; i < n; i++) rows.push([].concat(prod[i] || ['', ''], jan[i] || ['', ''], oc[i] || ['', '']));
+  return {t: 'table', cols: [{h: 'Produtividade', w: 22}, {h: '%', w: 10}, {h: 'Sem atraso', w: 22}, {h: '%', w: 12}, {h: 'Ocorrências', w: 22}, {h: '%', w: 12}], rows}; })(),
+{t: 'p', s: 'Abaixo da primeira faixa, o indicador não paga. O gatilho do app continua valendo: abaixo dele, o variável é zerado.'},
 {t: 'h1', s: 'Como contam as cargas'},
 {t: 'li', s: 'Carga em dia útil (segunda a sexta) vale 1; carga de sábado vale ' + (C.peso_sab || 2) + '; carga de domingo ou feriado vale ' + (C.peso_dom || 3) + '.'},
 {t: 'li', s: 'O perfil do veículo é lido no nome da rota (3ª e 4ª letras, ex.: SPTR424 = TR).'},

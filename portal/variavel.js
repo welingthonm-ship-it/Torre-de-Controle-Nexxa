@@ -1,6 +1,17 @@
 (() => {
 const W = window;
 TC.VAR_PADRAO = {meta_app: 98.5, app_campo: 'app_baixa', meta_janela: 90, peso_janela: 50, lim_oc: 1, peso_oc: 50, pct_frete: 1.5, valor_frota: 1000, meta_sr: 8, meta_tr: 8, meta_outros: 26, bonus_oc0: 30, bonus_jan: 30, lim_jan_plus: 100, bonus_prod_lim: 26, bonus_prod: 30, peso_sab: 2, peso_dom: 3, feriados: ['2025-10-12', '2025-11-02', '2025-11-15', '2025-11-20', '2025-12-25', '2026-01-01', '2026-04-03', '2026-04-21', '2026-05-01', '2026-06-04', '2026-09-07', '2026-10-12', '2026-11-02', '2026-11-15', '2026-11-20', '2026-12-25', '2027-01-01'], peso_prod: 50, tipos: ['Falta', 'Avaria'], frota: ['NFS', 'COMFRIO']};
+// Faixas da frota: cada indicador paga uma parte do seu peso conforme a faixa atingida (f = fração do peso).
+// Produtividade em cargas para a meta de 26 (proporcional para outros perfis e meta do mês): 15–17 = 20%, 18–22 = 35%, 23–26 = 50% do variável; acima da meta = plus.
+TC.VAR_FAIXAS = {
+  prod: [{min: 15, f: 0.4}, {min: 18, f: 0.7}, {min: 23, f: 1}],
+  jan: [{min: 80, f: 0.4}, {min: 85, f: 0.7}, {min: 90, f: 1}],
+  oc: [{max: 3, f: 0.4}, {max: 2, f: 0.7}, {max: 1, f: 1}]
+};
+TC.varFx = () => Object.assign({}, TC.VAR_FAIXAS, (TC.varCfg && TC.varCfg.faixas_frota) || {});
+TC.varFxProd = (pontos, meta) => { const base = +TC.varCfg.meta_outros || 26, k = meta / (base || 1); let f = 0; TC.varFx().prod.forEach((x) => { if (pontos >= Math.round(x.min * k)) f = x.f; }); return f; };
+TC.varFxJan = (jan) => { let f = 0; if (jan === null) return 0; TC.varFx().jan.forEach((x) => { if (jan >= x.min - 1e-9) f = x.f; }); return f; };
+TC.varFxOc = (oc) => { let f = 0; if (oc === null) return 0; TC.varFx().oc.forEach((x) => { if (oc <= x.max + 1e-9) f = Math.max(f, x.f); }); return f; };
 TC.varPesosFrota = () => { const C = TC.varCfg, pp = Math.min(100, Math.max(0, +C.peso_prod || 0)), r = 100 - pp, pj = +C.peso_janela || 0, po = +C.peso_oc || 0, t = pj + po || 1; return {prod: pp, jan: r * pj / t, oc: r * po / t}; };
 TC.varFrota = (t) => { const u = String(t || '').toUpperCase(); return (TC.varCfg.frota || []).some((f) => u.includes(String(f).toUpperCase())); };
 TC.varCfg = W.__nxVarCfg || Object.assign({}, TC.VAR_PADRAO);
@@ -118,7 +129,12 @@ const C2 = TC.varCfg; o.pontos = o.cUtil + o.cSab * (+C2.peso_sab || 2) + o.cDom
 prod = o.pontos; okP = gat && prod >= o.meta;
 o.prodPlus = okP && prod > o.meta;
 o.janPlus = okJ && jan !== null && jan >= (+C.lim_jan_plus || 100) - 1e-9;
-pct = gat ? (okP ? w.prod * (o.prodPlus ? 1 + (+C.bonus_prod || 0) / 100 : 1) : 0) + (okJ ? w.jan * (o.janPlus ? 1 + (+C.bonus_jan || 0) / 100 : 1) : 0) + (okO ? w.oc * fO : 0) : 0;
+// faixas: fração do peso de cada indicador (o plus vale só para quem bate a meta cheia)
+o.fxP = !gat ? 0 : o.prodPlus ? 1 + (+C.bonus_prod || 0) / 100 : TC.varFxProd(prod, o.meta);
+o.fxJ = !gat ? 0 : o.janPlus ? 1 + (+C.bonus_jan || 0) / 100 : TC.varFxJan(jan);
+o.fxO = !gat ? 0 : oc0 ? 1 + (+C.bonus_oc0 || 0) / 100 : TC.varFxOc(oc);
+o.pctP = w.prod * o.fxP; o.pctJ = w.jan * o.fxJ; o.pctO = w.oc * o.fxO;
+pct = o.pctP + o.pctJ + o.pctO;
 }
 return Object.assign(o, {app, jan, oc, gat, okJ, okO, oc0, okP, prod, pct: Math.round(pct * 10) / 10});
 });
@@ -151,6 +167,9 @@ el.textContent = ds.length ? 'Rotas de ' + TC.fdt(ds[0]) + ' a ' + TC.fdt(ds[ds.
 dash.draw('varCfg', (el) => {
 const C = TC.varCfg, k = el.dataset.k;
 if (k === 'fpeso_prod' || k === 'fpeso_janela' || k === 'fpeso_oc') { const w = TC.varPesosFrota(); el.textContent = TC.varP(k === 'fpeso_prod' ? w.prod : k === 'fpeso_janela' ? w.jan : w.oc, 0); return; }
+if (k === 'fx_prod') { const F = TC.varFx().prod, w = TC.varPesosFrota(); el.textContent = F.map((x, i) => x.min + (F[i + 1] ? '–' + (F[i + 1].min - 1) : '–' + (+C.meta_outros || 26)) + ' = ' + TC.varP(w.prod * x.f, 0)).join(' · ') + ' · acima de ' + (+C.meta_outros || 26) + ' = ' + TC.varP(w.prod * (1 + (+C.bonus_prod || 0) / 100), 0); return; }
+if (k === 'fx_jan') { const F = TC.varFx().jan, w = TC.varPesosFrota(); el.textContent = F.map((x) => '≥ ' + x.min + '% = ' + TC.varP(w.jan * x.f, 1)).join(' · ') + ' · 100% = ' + TC.varP(w.jan * (1 + (+C.bonus_jan || 0) / 100), 1); return; }
+if (k === 'fx_oc') { const F = TC.varFx().oc, w = TC.varPesosFrota(); el.textContent = F.map((x) => '≤ ' + x.max + '% = ' + TC.varP(w.oc * x.f, 1)).join(' · ') + ' · zero = ' + TC.varP(w.oc * (1 + (+C.bonus_oc0 || 0) / 100), 1); return; }
 if (k === 'metas_prod') { el.textContent = 'SR ' + (+C.meta_sr) + ' · TR ' + (+C.meta_tr) + ' · demais ' + (+C.meta_outros); return; }
 if (k === 'pct_frete') { el.textContent = TC.varP(C.pct_frete, 1); return; }
 if (k === 'bonus_prod_txt') { el.textContent = 'superando a meta de cargas: +' + TC.varP(C.bonus_prod, 0); return; }
@@ -204,8 +223,8 @@ return tr;
 }
 if (fr) {
 td(TC.fmt(o.cUtil, 'int'), 'n'); td(o.cSab ? TC.fmt(o.cSab, 'int') : '—', 'n'); td(o.cDom ? TC.fmt(o.cDom, 'int') : '—', 'n');
-{ const cc = td(TC.fmt(o.pontos, 'int'), 'n ' + (o.pontos >= o.meta ? 'nx-var-ok' : 'nx-var-no')); if (o.prodPlus) cc.textContent += ' ★ +' + (+C.bonus_prod || 0) + '%';
-cc.title = (o.prodPlus ? 'Superou a meta de ' + o.meta + ': peso da produtividade +' + (+C.bonus_prod || 0) + '%. ' : '') + o.cUtil + ' + ' + o.cSab + ' × ' + (+C.peso_sab || 2) + ' + ' + o.cDom + ' × ' + (+C.peso_dom || 3) + ' = ' + o.pontos; cc.style.fontWeight = '600'; }
+{ const cc = td(TC.fmt(o.pontos, 'int'), 'n ' + (o.pontos >= o.meta ? 'nx-var-ok' : o.fxP > 0 ? 'nx-var-mid' : 'nx-var-no')); cc.textContent += ' · ' + TC.varP(o.pctP, 0) + (o.prodPlus ? ' ★' : '');
+cc.title = 'Faixa de produtividade: ' + TC.varP(o.pctP, 1) + ' do variável. ' + (o.prodPlus ? 'Superou a meta de ' + o.meta + ': peso da produtividade +' + (+C.bonus_prod || 0) + '%. ' : '') + o.cUtil + ' + ' + o.cSab + ' × ' + (+C.peso_sab || 2) + ' + ' + o.cDom + ' × ' + (+C.peso_dom || 3) + ' = ' + o.pontos; cc.style.fontWeight = '600'; }
 const mt = td(TC.fmt(o.meta, 'int'), 'n'); mt.title = 'Meta do mês para o perfil ' + o.perfil + ': ' + o.metaMes + ' cargas; proporcional aos dias úteis até o último dia do relatório' + (o.abonos ? ', descontando ' + o.abonos + ' dia(s) abonado(s)' : '');
 td(o.abonos ? TC.fmt(o.abonos, 'int') : '—', 'n');
 tr.classList.add('nx-var-click'); if (TC.varF.dia === o.key) tr.classList.add('nx-var-sel');
@@ -233,7 +252,7 @@ item('Total com peso', TC.fmt(o.pontos, 'int'));
 item('Meta do perfil ' + o.perfil, TC.fmt(o.metaMes, 'int') + ' no mês');
 item('Meta considerada', TC.fmt(o.meta, 'int'));
 item('Dias abonados', TC.fmt(o.abonos, 'int'));
-item('Produtividade', o.okP ? 'atingida' : 'não atingida');
+item('Produtividade', TC.varP(o.pctP || 0, 1) + ' do variável' + (o.prodPlus ? ' (plus)' : o.okP ? ' (meta cheia)' : o.fxP > 0 ? ' (faixa parcial)' : ' (abaixo da 1ª faixa)'));
 });
 dash.draw('varDia', (box) => {
 const s = TC.varDiaSel(); box.replaceChildren();
@@ -321,7 +340,7 @@ TC.varXlsTransp = (nomes) => {
 const c = TC.varCalc(); if (!c) return null;
 const C = TC.varCfg, mesN = TC.varMesNome(c.mes), ano = c.mes.slice(0, 4), f = (x) => (x === null || x === undefined ? '' : x / 100);
 const nb = (x) => String(x).replace('.', ',');
-const regra = 'Gatilho: uso do app ≥ ' + nb(C.meta_app) + '% · Sem atraso ≥ ' + nb(C.meta_janela) + '% (peso ' + nb(C.peso_janela) + '%) · Ocorrências culpa do transportador ≤ ' + nb(C.lim_oc) + '% (peso ' + nb(C.peso_oc) + '%; tipos: ' + Array.from(new Set(['Falta'].concat(C.tipos || []))).join(', ') + ') · Bônus máximo ' + nb(C.pct_frete) + '% sobre o frete';
+const regra = 'Gatilho: uso do app ≥ ' + nb(C.meta_app) + '% · Sem atraso ≥ ' + nb(C.meta_janela) + '% (peso ' + nb(C.peso_janela) + '%) · Ocorrências culpa do transportador ≤ ' + nb(C.lim_oc) + '% (peso ' + nb(C.peso_oc) + '%; tipos: ' + Array.from(new Set(['Falta'].concat(C.tipos || []))).join(', ') + ') · Bônus máximo ' + nb(C.pct_frete) + '% sobre o frete' + ' · Faixas (frota): produtividade ' + TC.varFx().prod.map((x) => x.min + '+ cargas ' + nb(w.prod * x.f) + '%').join(', ') + '; sem atraso ' + TC.varFx().jan.map((x) => '≥' + x.min + '% ' + nb(w.jan * x.f) + '%').join(', ') + '; ocorrências ' + TC.varFx().oc.map((x) => '≤' + x.max + '% ' + nb(w.oc * x.f) + '%').join(', ');
 const obsP = 'O bônus é pago individualmente a cada motorista. A linha da transportadora é a média ponderada pelas entregas de cada motorista.';
 const quando = 'Apurado pelo portal Torre de Controle em ' + new Date().toLocaleString('pt-BR');
 const hT = ['Transportadora', 'Entregas', 'Motoristas', 'Uso do app', 'Motoristas com bônus', 'Sem atraso', 'Ocorrências (qtd)', 'Ocorrências (%)', '% atingido (ponderado)', 'Bônus ponderado sobre o frete'].map((v) => ({v, s: 'h'}));
