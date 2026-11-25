@@ -67,6 +67,7 @@
 </div>
 </div>
 </header>
+<div class='nx-rm-modal' id='al-rm' role='dialog' aria-modal='true' aria-label='Remover alerta com clientes informados' hidden><div class='nx-rm-box' data-draw='alRmBox' data-source='entregas_cliente'></div></div>
 <div class='nx-al-editor' id='alerta-editor' hidden>
 <div class='nx-al-head'><strong>Alerta da rota <span data-draw='alRota'>—</span></strong><span class='tc-sub'>O alerta aparece em todas as entregas pendentes dessa rota: Rotas do dia, Entregas pendentes, Rastreio - Consulta cliente e Modo TV.</span></div>
 <div class='nx-al-fields'>
@@ -78,6 +79,7 @@
 <option value='excesso_volumes'>Pedido reprogramado – excesso de volumes</option>
 <option value='atraso_saida'>Saída com atraso – possíveis atrasos nas entregas</option>
 <option value='atraso_entrega'>Atraso / possível atraso na entrega</option>
+<option value='normalizado'>Situação normalizada – seguindo viagem dentro do programado</option>
 <option value='baixa_manual'>Baixa manual – entregue (falha no app do motorista)</option>
 <option value='outro'>Outra divergência</option>
 </select></label>
@@ -2236,7 +2238,7 @@ TC.tvArm();
 (() => {
 const W = window;
 TC.alProxDia = {reprogramado: true, quebrado_prox: true, excesso_volumes: true};
-TC.alTipos = {sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', excesso_volumes: 'Pedido reprogramado – excesso de volumes', atraso_saida: 'Saída com atraso – possíveis atrasos nas entregas', atraso_entrega: 'Atraso / possível atraso na entrega', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência'};
+TC.alTipos = {sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', excesso_volumes: 'Pedido reprogramado – excesso de volumes', atraso_saida: 'Saída com atraso – possíveis atrasos nas entregas', atraso_entrega: 'Atraso / possível atraso na entrega', normalizado: 'Situação normalizada – seguindo viagem dentro do programado', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência'};
 TC.al = W.__nxAl || new Map(); W.__nxAl = TC.al;
 TC.alPode = !!W.__nxAlPode;
 TC.alId = (data, rota) => (data + '__' + rota).replace(/[^A-Za-z0-9_\-.~:@+]/g, '_');
@@ -2343,7 +2345,7 @@ b.disabled = false;
 document.querySelectorAll('#al-remover').forEach((b) => { b.onclick = async () => {
 const e = TC.alEdit; if (!e) return;
 msgs('al-msg-salvando'); b.disabled = true;
-try { const d = await db(); if (!d) throw new Error('sem db'); const prev = TC.alDe(e.data, e.rota); await d.doc('alertas/' + TC.alId(e.data, e.rota)).delete(); if (TC.log) TC.log('Alerta removido', {data: e.data, rota: e.rota, detalhe: prev ? (TC.alTipos[prev.tipo] || prev.tipo) + (prev.obs ? ' · ' + prev.obs : '') : ''}); fechar(); }
+try { const prev = TC.alDe(e.data, e.rota); if (!prev) { fechar(); } else { msgs(''); await TC.alRemover(prev, fechar); } }
 catch (err) { msgs('al-msg-erro'); }
 b.disabled = false;
 }; });
@@ -2389,7 +2391,7 @@ L.forEach((a) => {
 const row = document.createElement('div'); row.className = 'nx-al-cli-row';
 const t = document.createElement('span'); t.textContent = ' ' + (a.escopo === 'baixa' && a.entregue_em ? 'entregue em ' + a.entregue_em.slice(8, 10) + '/' + a.entregue_em.slice(5, 7) + ' ' + a.entregue_em.slice(11, 16) + ': ' : '') + (a.ids || []).map((id) => nome.get(id) || id).join(', ') + (a.obs ? ' · ' + a.obs : '');
 row.append(TC.alBadge(a), t);
-if (TC.alPode) { const x = document.createElement('button'); x.type = 'button'; x.className = 'nx-al-btn'; x.textContent = 'Remover'; x.onclick = async () => { try { const d = await db(); await d.doc('alertas/' + a._id).delete(); if (TC.log) TC.log(a.escopo === 'baixa' ? 'Baixa manual removida' : 'Alerta por cliente removido', {data: a.data, rota: a.rota, detalhe: (TC.alTipos[a.tipo] || a.tipo) + ' · ' + TC.logClientes(a.data, a.rota, a.ids || [])}); } catch (err) { msgs('al-msg-erro'); } }; row.append(x); }
+if (TC.alPode) { const x = document.createElement('button'); x.type = 'button'; x.className = 'nx-al-btn'; x.textContent = 'Remover'; x.onclick = async () => { if (a.escopo !== 'baixa' && TC.alRemover) { try { await TC.alRemover(a); } catch (err) { msgs('al-msg-erro'); } return; } try { const d = await db(); await d.doc('alertas/' + a._id).delete(); if (TC.log) TC.log(a.escopo === 'baixa' ? 'Baixa manual removida' : 'Alerta por cliente removido', {data: a.data, rota: a.rota, detalhe: (TC.alTipos[a.tipo] || a.tipo) + ' · ' + TC.logClientes(a.data, a.rota, a.ids || [])}); } catch (err) { msgs('al-msg-erro'); } }; row.append(x); }
 box.append(row);
 });
 });
@@ -2425,6 +2427,7 @@ el.append(q); }
 <script src='atrasos.js'></script>
 <script src='reprog.js'></script>
 <script src='abapisca.js'></script>
+<script src='alrem.js'></script>
 <script src='ocval.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>
@@ -2617,7 +2620,7 @@ const upd = () => { const n = selDe().filter((p) => !TC.csInf(a, p.id)).length; 
 selBt.onclick = () => TC.csMarcar(a, selDe().filter((p) => !TC.csInf(a, p.id)).map((p) => p.id), true, selBt);
 selBt.__upd = upd; upd(); head.append(selBt);
 }
-if (TC.alPode) { const ed = el('button', 'nx-al-btn', 'Editar alerta'); ed.type = 'button'; ed.onclick = () => TC.alAbrir(a.data, a.rota, a.escopo === 'clientes' ? 'clientes' : undefined); head.append(ed); }
+if (TC.alPode) { const ed = el('button', 'nx-al-btn', 'Editar alerta'); ed.type = 'button'; ed.onclick = () => TC.alAbrir(a.data, a.rota, a.escopo === 'clientes' ? 'clientes' : undefined); head.append(ed); const rm = el('button', 'nx-al-btn nx-al-rm', 'Remover alerta'); rm.type = 'button'; rm.onclick = () => TC.alRemover && TC.alRemover(a); head.append(rm); }
 card.append(head);
 if (a.obs) card.append(el('div', 'nx-cs-obs', a.obs));
 if (!peds.length) { card.append(el('div', 'tc-sub', 'Nenhum pedido pendente nesta rota no último relatório.')); box.append(card); return; }

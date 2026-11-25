@@ -539,3 +539,13 @@ tr.nx-jan-row td{background:#FFF4F2}
 .nx-ocr-row.is-pend .nx-ocr-k,.nx-ocr-row.is-pend .nx-ocr-v{color:#B54708}
 .nx-ocr-row.is-pend .nx-ocr-bar b{background:#98A2B3}
 .nx-ocr-row.is-zero{opacity:.55}
+/* Remover alerta com clientes já informados */
+.nx-al-normalizado{color:#067647;background:#DCFAE6}
+.nx-rm-modal{position:fixed;inset:0;z-index:1000;background:rgba(16,24,40,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.nx-rm-modal[hidden]{display:none}
+.nx-rm-box{background:var(--color-bg-card,#fff);color:var(--color-text,#101828);border-radius:12px;max-width:520px;width:100%;padding:18px 20px;box-shadow:0 20px 40px rgba(16,24,40,.25);max-height:85vh;overflow:auto}
+.nx-rm-box h3{margin:0 0 8px;font-size:17px}
+.nx-rm-box p{margin:6px 0}
+.nx-rm-lista{margin:6px 0 10px;padding-left:18px;font-size:13px}
+.nx-rm-obs{background:#ECFDF3;border-left:4px solid #067647;padding:8px 10px;border-radius:6px;font-size:13px}
+.nx-al-rm{color:#B42318}

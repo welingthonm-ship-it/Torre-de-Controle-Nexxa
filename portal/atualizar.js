@@ -428,7 +428,7 @@ window.nxTransform = (function () {
       .sort(function (a, b) { return a.data < b.data ? -1 : a.data > b.data ? 1 : 0; });
   }
 
-  var TIPOS = { sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', excesso_volumes: 'Pedido reprogramado – excesso de volumes', atraso_saida: 'Saída com atraso – possíveis atrasos nas entregas', atraso_entrega: 'Atraso / possível atraso na entrega', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência' };
+  var TIPOS = { sinistro: 'Sinistro – carga roubada (recolocar os pedidos)', socorro: 'Carro quebrado – buscando socorro', quebrado_prox: 'Carro quebrado – carga seguirá no próximo dia', reprogramado: 'Reprogramado para o próximo dia', excesso_volumes: 'Pedido reprogramado – excesso de volumes', atraso_saida: 'Saída com atraso – possíveis atrasos nas entregas', atraso_entrega: 'Atraso / possível atraso na entrega', normalizado: 'Situação normalizada – seguindo viagem dentro do programado', baixa_manual: 'Baixa manual – entregue (falha no app)', outro: 'Outra divergência' };
   // Baixa manual: entrega apontada como entregue pelo monitoramento quando o app do motorista falhou.
   function baixaManual(rows, alertas) {
     var A = alertas || {};
