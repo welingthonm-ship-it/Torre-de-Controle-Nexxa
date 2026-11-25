@@ -547,7 +547,7 @@
 <article class='nx-treino'>
 <div class='nx-treino-tag'>Variável</div>
 <h3>Regras do variável · Transportadoras</h3>
-<p>Gatilho do app, metas de entregas sem atraso e de ocorrências, bônus de até 1,5% sobre o frete por motorista.</p>
+<p>Gatilho do app, metas de entregas sem atraso e de ocorrências, bônus de até 1,35% sobre o frete por motorista, por faixas.</p>
 <button type='button' class='nx-btn' data-treino='var-transp'>⬇ Baixar PDF</button>
 </article>
 <article class='nx-treino'>
@@ -816,8 +816,8 @@
 </div>
 <section class='nx-var-regras' aria-label='Regras do variável'>
 <div class='nx-var-regra nx-var-gat'><div class='nx-var-rt'>Gatilho · uso do app</div><div class='nx-var-rv'>≥ <span data-draw='varCfg' data-k='meta_app' data-source='entregas_cliente'>—</span></div><div class='tc-sub'>abaixo disso, variável zerado</div></div>
-<div class='nx-var-regra'><div class='nx-var-rt'>Entregas sem atraso (na janela)</div><div class='nx-var-rv'>≥ <span data-draw='varCfg' data-k='meta_janela' data-source='entregas_cliente'>—</span></div><div class='tc-sub'>peso <span data-draw='varCfg' data-k='peso_janela' data-source='entregas_cliente'>—</span> do variável</div></div>
-<div class='nx-var-regra'><div class='nx-var-rt'>Ocorrências por culpa do transportador</div><div class='nx-var-rv'>≤ <span data-draw='varCfg' data-k='lim_oc' data-source='entregas_cliente'>—</span></div><div class='tc-sub'>peso <span data-draw='varCfg' data-k='peso_oc' data-source='entregas_cliente'>—</span> do variável · tipos: <span data-draw='varCfg' data-k='tipos' data-source='entregas_cliente'>—</span></div></div>
+<div class='nx-var-regra'><div class='nx-var-rt'>Entregas sem atraso (na janela)</div><div class='nx-var-rv'>≥ <span data-draw='varCfg' data-k='meta_janela' data-source='entregas_cliente'>—</span></div><div class='tc-sub'>peso <span data-draw='varCfg' data-k='peso_janela' data-source='entregas_cliente'>—</span> do variável<br><b>Faixas:</b> <span data-draw='varCfg' data-k='fx_jan_t' data-source='entregas_cliente'>—</span></div></div>
+<div class='nx-var-regra'><div class='nx-var-rt'>Ocorrências por culpa do transportador</div><div class='nx-var-rv'>≤ <span data-draw='varCfg' data-k='lim_oc' data-source='entregas_cliente'>—</span></div><div class='tc-sub'>peso <span data-draw='varCfg' data-k='peso_oc' data-source='entregas_cliente'>—</span> do variável · tipos: <span data-draw='varCfg' data-k='tipos' data-source='entregas_cliente'>—</span><br><b>Faixas:</b> <span data-draw='varCfg' data-k='fx_oc_t' data-source='entregas_cliente'>—</span></div></div>
 </section>
 <details class='nx-var-cfg' id='var-cfg'>
 <summary>Ajustar regras e valores</summary>
@@ -886,7 +886,7 @@
 <dt>Frota</dt><dd>Produtividade = cargas (rotas) do motorista no mês. Meta pelo perfil do veículo, lido no nome da rota (3ª e 4ª letras, ex.: SPTR424 = TR): SR 8, TR 8, demais 26 cargas. Cada carga de sábado vale 2 e cada carga de domingo ou feriado vale 3. A meta é proporcional aos dias úteis (segunda a sábado, sem feriados): dias abonados (folga dada pela gerência, oficina, coleta, outros serviços) saem da conta, e no mês em andamento a meta vai até o último dia do relatório. Vale o peso da produtividade (padrão 50%); o restante é nível de serviço (25% sem atraso e 25% ocorrências no padrão).</dd>
 <dt>Bônus zero ocorrência</dt><dd>Só na frota: quem tem zero ocorrência ganha o peso do indicador de ocorrências com +30% (25% vira 32,5%).</dd>
 <dt>Bônus produtividade (frota)</dt><dd>Quem supera a meta de cargas (total com peso acima da meta considerada do motorista) ganha o peso da produtividade com +30% (50% vira 65%). Quem não tem nenhuma entrega com atraso (100% sem atraso) ganha +30% no peso de sem atraso (25% vira 32,5%). Com os três bônus, a frota pode chegar a 130%.</dd>
-<dt>Bônus</dt><dd>Transportadoras: % atingido × 1,5% = bônus em percentual, para aplicar sobre o frete (100% → 1,5%; 50% → 0,75%). Sem acréscimos. Frota: R$ 1.000 por motorista × % atingido, com os acréscimos de zero ocorrência e de superação da meta de cargas. Abaixo do gatilho de uso do app, o bônus é zero.</dd>
+<dt>Bônus</dt><dd>Transportadoras: % atingido × 1,35% = bônus em percentual, para aplicar sobre o frete (100% → 1,35%; 50% → 0,675%). Sem atraso e ocorrências pagam por faixas, iguais às da frota, sem plus. Frota: R$ 1.000 por motorista × % atingido, com os acréscimos de zero ocorrência e de superação da meta de cargas. Abaixo do gatilho de uso do app, o bônus é zero.</dd>
 </dl>
 </details>
 </section>

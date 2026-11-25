@@ -204,7 +204,7 @@ gat,
 ...TC.popMotoristasBlocos(),
 ]});
 return Object.assign(base, {titulo: 'Variável das Transportadoras', blocos: [
-{t: 'p', s: 'Regras do pagamento variável dos motoristas das transportadoras terceiras. O bônus é calculado e pago individualmente para cada motorista, em percentual sobre o frete, até o limite de ' + nb(C.pct_frete) + '%. Não há acréscimos (plus). A visão por transportadora é apenas a média ponderada pelas entregas dos seus motoristas: uma transportadora pode ter motoristas premiados mesmo que, na média, não atinja as metas.'},
+{t: 'p', s: 'Regras do pagamento variável dos motoristas das transportadoras terceiras. O bônus é calculado e pago individualmente para cada motorista, em percentual sobre o frete, até o limite de ' + nb(C.pct_frete) + '%. Entregas sem atraso e ocorrências pagam por faixas (as mesmas da frota). Não há acréscimos (plus). A visão por transportadora é apenas a média ponderada pelas entregas dos seus motoristas: uma transportadora pode ter motoristas premiados mesmo que, na média, não atinja as metas.'},
 gat,
 {t: 'h1', s: 'Indicadores e pesos'},
 {t: 'table', cols: [{h: 'Indicador', w: 34}, {h: 'Meta', w: 22}, {h: 'Peso no bônus', w: 18}, {h: 'Observação', w: 40}], rows: [
@@ -212,10 +212,15 @@ gat,
 ['Entregas sem atraso', '>= ' + nb(C.meta_janela) + '%', nb(C.peso_janela) + '%', 'Na janela do cliente, com 1 h de tolerância'],
 ['Ocorrências por culpa do transportador', '<= ' + nb(C.lim_oc) + '%', nb(C.peso_oc) + '%', 'Tipos: ' + tipos]]},
 {t: 'h1', s: 'Bônus sobre o frete'},
+(() => { const F = TC.varFx(), pj = +C.peso_janela || 0, po = +C.peso_oc || 0, b = +C.pct_frete || 0, f3 = (v) => nb(Math.round(v * 1000) / 1000) + '%';
+  const rows = [];
+  F.jan.forEach((x) => rows.push(['Sem atraso: ' + nb(x.min) + '% ou mais', nb(Math.round(pj * x.f * 10) / 10) + '%', f3(b * pj * x.f / 100)]));
+  F.oc.forEach((x) => rows.push(['Ocorrências: até ' + nb(x.max) + '%', nb(Math.round(po * x.f * 10) / 10) + '%', f3(b * po * x.f / 100)]));
+  return {t: 'table', cols: [{h: 'Faixa (cada indicador soma a sua parte)', w: 60}, {h: '% atingido', w: 20}, {h: 'Bônus sobre o frete', w: 25}], rows}; })(),
 {t: 'table', cols: [{h: 'Resultado do motorista', w: 60}, {h: '% atingido', w: 20}, {h: 'Bônus sobre o frete', w: 25}], rows: [
-['Atingiu as duas metas', '100%', nb(+C.pct_frete, 2) + '%'],
-['Atingiu uma das metas', '50%', nb(C.pct_frete * 0.5, 2) + '%'],
-['Não atingiu nenhuma meta ou ficou abaixo do gatilho do app', '0%', '0,00%']]},
+['Faixa máxima nos dois indicadores', '100%', nb(+C.pct_frete, 2) + '%'],
+['Faixa máxima em um indicador e nada no outro', '50%', nb(C.pct_frete * 0.5, 3) + '%'],
+['Abaixo das primeiras faixas ou abaixo do gatilho do app', '0%', '0,00%']]},
 {t: 'box', s: 'Exemplo: motorista com R$ 20.000,00 de frete no mês e as duas metas atingidas recebe ' + nb(+C.pct_frete, 2) + '% = ' + reais(20000 * C.pct_frete / 100) + '.'},
 ...obs,
 ...defs]});
