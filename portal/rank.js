@@ -31,7 +31,7 @@ description: 'Entregas, rotas, concluídas, ocorrências, espera e entregas aval
 fn: (entregas_cliente) => {
 const grupos = new Map();
 entregas_cliente.forEach((r) => {
-const k = r.data + '|' + (r.codigo || r.cliente || 'Não informado') + '|' + (r.transportadora || 'Sem transportadora');
+const k = r.data + '|' + (r.grupo || r.cliente || r.codigo || 'Não informado') + '|' + (r.transportadora || 'Sem transportadora');
 if (!grupos.has(k)) grupos.set(k, []);
 grupos.get(k).push(r);
 });
@@ -40,7 +40,7 @@ return Array.from(grupos.values()).map((rows) => {
 const r0 = rows[0], sla = conta(rows, 'sla_janela'), ot = conta(rows, 'on_time'), of = conta(rows, 'otif'), ap = conta(rows, 'app_no_raio');
 const esp = rows.map((r) => +r.min_espera).filter((v) => isFinite(v) && v >= 0);
 return {
-data: r0.data, codigo: r0.codigo || r0.cliente || 'Não informado', cliente: r0.cliente || '', grupo: r0.grupo || '', cidade: (r0.cidade || '') + (r0.uf ? '/' + r0.uf : ''), transportadora: r0.transportadora || 'Sem transportadora',
+data: r0.data, grupo: r0.grupo || r0.cliente || r0.codigo || 'Não informado', cods: Array.from(new Set(rows.map((r) => r.codigo || r.cliente))), busca: Array.from(new Set(rows.map((r) => (r.codigo || '') + ' ' + (r.cliente || '') + ' ' + (r.cidade || '')))).join(' '), transportadora: r0.transportadora || 'Sem transportadora',
 viagens: new Set(rows.map((r) => r.rota)).size, entregas: rows.length,
 concluidas: rows.filter((r) => r.entregue === 'SIM').length, ocorrencias: rows.filter((r) => r.ocorrencia).length,
 oc_falta: rows.filter((r) => r.ocorrencia === 'Falta').length, oc_devolucao: rows.filter((r) => r.ocorrencia === 'Devolução Total').length, oc_avaria: rows.filter((r) => r.ocorrencia === 'Avaria').length, oc_qualidade: rows.filter((r) => r.ocorrencia === 'Qualidade').length,
@@ -53,7 +53,7 @@ esp_soma: esp.reduce((a, b) => a + b, 0), esp_n: esp.length
 TC.RK = {
 transportadoras_dia: {key: (r) => r.transportadora, nome: (t) => t.transportadora, cols: [], per: {de: null, ate: null}, ord: 'sla', min: 10, quick: '7'},
 motoristas_dia: {key: (r) => r.motorista + '|' + r.transportadora, nome: (t) => t.motorista + ' · ' + t.transportadora, cols: ['transportadora'], per: {de: null, ate: null}, ord: 'sla', min: 10, quick: '7', transp: ''},
-clientes_rk_dia: {key: (r) => r.codigo, nome: (t) => (t.codigo ? t.codigo + ' · ' : '') + t.cliente, cols: ['grupo', 'cidade'], per: {de: null, ate: null}, ord: 'sla', min: 1, quick: '7', transp: ''}
+clientes_rk_dia: {key: (r) => r.grupo, nome: (t) => t.grupo, cols: ['lojas'], per: {de: null, ate: null}, ord: 'sla', min: 1, quick: '7', transp: ''}
 };
 TC.rkOf = (el) => { const sec = el.closest('[data-rk]'); return sec ? sec.dataset.rk : null; };
 TC.rkDias = () => { const g = dash.data('resumo_dia'); return g.status === 'ok' ? g.data.map((r) => r.data).sort() : []; };
@@ -73,16 +73,17 @@ const m = new Map();
 g.data.forEach((r) => {
 if (r.data < R.de || r.data > R.ate) return;
 if (st.transp && r.transportadora !== st.transp) return;
-if (st.q && ![r.codigo, r.cliente, r.grupo, r.cidade].join(' ').toLowerCase().includes(st.q)) return;
+if (st.q && ![r.grupo, r.busca].join(' ').toLowerCase().includes(st.q)) return;
 const k = st.key(r);
-const t = m.get(k) || {transportadora: r.transportadora, motorista: r.motorista, codigo: r.codigo, cliente: r.cliente, grupo: r.grupo, cidade: r.cidade, esp_soma: 0, esp_n: 0, entregas: 0, viagens: 0, concluidas: 0, ocorrencias: 0, oc_falta: 0, oc_devolucao: 0, oc_avaria: 0, oc_qualidade: 0, sla_sim: 0, sla_aval: 0, ontime_sim: 0, ontime_aval: 0, otif_sim: 0, otif_aval: 0, app_sim: 0, app_aval: 0};
+const t = m.get(k) || {transportadora: r.transportadora, motorista: r.motorista, grupo: r.grupo, codSet: new Set(), esp_soma: 0, esp_n: 0, entregas: 0, viagens: 0, concluidas: 0, ocorrencias: 0, oc_falta: 0, oc_devolucao: 0, oc_avaria: 0, oc_qualidade: 0, sla_sim: 0, sla_aval: 0, ontime_sim: 0, ontime_aval: 0, otif_sim: 0, otif_aval: 0, app_sim: 0, app_aval: 0};
 ['entregas', 'viagens', 'concluidas', 'ocorrencias', 'oc_falta', 'oc_devolucao', 'oc_avaria', 'oc_qualidade', 'sla_sim', 'sla_aval', 'ontime_sim', 'ontime_aval', 'otif_sim', 'otif_aval', 'app_sim', 'app_aval', 'esp_soma', 'esp_n'].forEach((f) => { t[f] += +r[f] || 0; });
 if (t.transportadora !== r.transportadora && !st.transp) t.transportadora = 'Várias';
+if (r.cods) r.cods.forEach((c) => t.codSet.add(c));
 m.set(k, t);
 });
 return Array.from(m.values()).map((t) => Object.assign(t, {
 conc: TC.rkPct(t.concluidas, t.entregas), sla: TC.rkPct(t.sla_sim, t.sla_aval), ontime: TC.rkPct(t.ontime_sim, t.ontime_aval),
-otif: TC.rkPct(t.otif_sim, t.otif_aval), oc: TC.rkPct(t.ocorrencias, t.entregas), ocq: t.ocorrencias, ent: t.entregas, app: TC.rkPct(t.app_sim, t.app_aval), esp: t.esp_n ? Math.round(t.esp_soma / t.esp_n) : null
+otif: TC.rkPct(t.otif_sim, t.otif_aval), oc: TC.rkPct(t.ocorrencias, t.entregas), ocq: t.ocorrencias, ent: t.entregas, app: TC.rkPct(t.app_sim, t.app_aval), esp: t.esp_n ? Math.round(t.esp_soma / t.esp_n) : null, lojas: t.codSet.size
 }));
 };
 TC.rkSort = (rows, k) => rows.slice().sort((a, b) => {
@@ -158,7 +159,7 @@ const tr = document.createElement('tr'); tr.className = 'nx-rk-sub';
 const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; if (txt !== null) c.textContent = txt; tr.append(c); return c; };
 td('', 'n');
 if (id === 'motoristas_dia') { td('Subtotal · ' + TC.fmt(new Set(list.map((r) => r.motorista)).size, 'int') + ' motoristas', 'nx-sub-l'); td(st.transp || 'Todas as transportadoras'); }
-else if (id === 'clientes_rk_dia') { td('Total · ' + TC.fmt(list.length, 'int') + ' clientes', 'nx-sub-l'); td(st.transp || 'Todas as transportadoras'); td(''); }
+else if (id === 'clientes_rk_dia') { td('Total · ' + TC.fmt(list.length, 'int') + ' redes' + (st.transp ? ' · ' + st.transp : ''), 'nx-sub-l'); td(TC.fmt(d3.sum(list, (r) => r.lojas), 'int'), 'n'); }
 else td('Total · ' + TC.fmt(list.length, 'int') + ' transportadoras', 'nx-sub-l');
 td(TC.fmt(t.entregas, 'int'), 'n'); td(TC.fmt(t.viagens, 'int'), 'n'); td(TC.fmt(t.conc, 'pct'), 'n');
 td(null).append(bar(t.app, '#7A5AF8')); td(null).append(bar(t.sla, TC.pal[0])); td(TC.fmt(t.oc, 'pct'), 'n');
@@ -172,8 +173,8 @@ tb.replaceChildren(...(sub ? [sub] : []), ...list.map((r, ix) => {
 const tr = document.createElement('tr'); if (ix < 3) tr.className = 'is-top';
 const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; if (txt !== null) c.textContent = txt; tr.append(c); return c; };
 const pos = td(null, 'n nx-pos'); const pb = document.createElement('b'); if (ix < 3) pb.className = 'p' + (ix + 1); pb.textContent = ix + 1; pos.append(pb);
-td(id === 'motoristas_dia' ? r.motorista : id === 'clientes_rk_dia' ? (r.codigo ? r.codigo + ' · ' : '') + (r.cliente || '') : r.transportadora);
-st.cols.forEach((c) => td(r[c]));
+td(id === 'motoristas_dia' ? r.motorista : id === 'clientes_rk_dia' ? r.grupo : r.transportadora);
+st.cols.forEach((c) => td(c === 'lojas' ? TC.fmt(r.lojas, 'int') : r[c], c === 'lojas' ? 'n' : null));
 td(TC.fmt(r.entregas, 'int'), 'n'); td(TC.fmt(r.viagens, 'int'), 'n'); td(TC.fmt(r.conc, 'pct'), 'n');
 td(null).append(bar(r.app, '#7A5AF8')); td(null).append(bar(r.sla, TC.pal[0])); td(TC.fmt(r.oc, 'pct'), 'n');
 td(null).append(bar(r.ontime, TC.pal[2])); td(null).append(bar(r.otif, TC.pal[3]));

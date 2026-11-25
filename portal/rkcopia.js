@@ -54,12 +54,12 @@ const quebra = (ctx, txt, w) => {
 TC.rkCanvas = (id, msg) => {
   const full = TC.rkLista(id); if (!full || !full.length) return null;
   const st = TC.RK[id], R = TC.rkRange(id), t = TC.rkSub(full), mot = id === 'motoristas_dia', cli = id === 'clientes_rk_dia';
-  const list = cli ? full.slice(0, 40) : full;   // imagem de clientes: os 40 primeiros da ordem escolhida
+  const list = cli ? full.slice(0, 40) : full;   // imagem de redes: as 40 primeiras da ordem escolhida
   const F = 'Roboto, "Segoe UI", Arial, sans-serif';
   const cols = [
-    {h: '#', w: 46, a: 'c'}, {h: mot ? 'Motorista' : cli ? 'Cliente' : 'Transportadora', w: cli ? 300 : 230, a: 'l'}];
+    {h: '#', w: 46, a: 'c'}, {h: mot ? 'Motorista' : cli ? 'Rede / cliente' : 'Transportadora', w: cli ? 300 : 230, a: 'l'}];
   if (mot) cols.push({h: 'Transportadora', w: 160, a: 'l'});
-  if (cli) cols.push({h: 'Cidade/UF', w: 170, a: 'l'});
+  if (cli) cols.push({h: 'Lojas', w: 80, a: 'r'});
   cols.push({h: 'Entregas', w: 90, a: 'r'}, {h: cli ? 'Rotas' : 'Viagens', w: 80, a: 'r'}, {h: '% Concluídas', w: 120, a: 'r'},
     {h: 'Aderência app', w: 180, a: 'b', k: 'app', cor: '#7A5AF8'}, {h: 'SLA janela', w: 180, a: 'b', k: 'sla', cor: TC.pal[0]},
     {h: '% ocorr.', w: 90, a: 'r'}, {h: 'On Time', w: 180, a: 'b', k: 'ontime', cor: TC.pal[2]}, {h: 'OTIF', w: 180, a: 'b', k: 'otif', cor: TC.pal[3]});
@@ -101,8 +101,8 @@ TC.rkCanvas = (id, msg) => {
     const yy = y + RH / 2; let xx = 20;
     ctx.font = (sub ? '600 ' : '') + '15px ' + F; ctx.fillStyle = sub ? '#3D3200' : '#1B2B22';
     const vals = sub
-      ? ['', (mot ? 'SUBTOTAL · ' + list.length + ' MOTORISTAS' : cli ? 'TOTAL · ' + full.length + ' CLIENTES' : 'TOTAL · ' + list.length + ' TRANSPORTADORAS')].concat(mot ? [st.transp || 'Todas'] : cli ? [''] : [])
-      : [String(ix + 1), mot ? r.motorista : cli ? (r.codigo ? r.codigo + ' · ' : '') + (r.cliente || '') : r.transportadora].concat(mot ? [r.transportadora] : cli ? [r.cidade || ''] : []);
+      ? ['', (mot ? 'SUBTOTAL · ' + list.length + ' MOTORISTAS' : cli ? 'TOTAL · ' + full.length + ' REDES' : 'TOTAL · ' + list.length + ' TRANSPORTADORAS')].concat(mot ? [st.transp || 'Todas'] : cli ? [TC.fmt(d3.sum(full, (r) => r.lojas), 'int')] : [])
+      : [String(ix + 1), mot ? r.motorista : cli ? r.grupo : r.transportadora].concat(mot ? [r.transportadora] : cli ? [TC.fmt(r.lojas, 'int')] : []);
     const d = sub ? t : r;
     vals.push(TC.fmt(d.entregas, 'int'), TC.fmt(d.viagens, 'int'), pctTxt(d.conc), null, null, pctTxt(d.oc), null, null);
     cols.forEach((c, i) => {

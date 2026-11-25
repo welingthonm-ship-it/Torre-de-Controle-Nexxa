@@ -1046,7 +1046,7 @@
 <option value='esp'>Maior espera no cliente</option>
 </select></label>
 <label class='rk-transp-l'>Transportadora <select class='dash-select rk-transp' data-draw='rkTransp' aria-label='Filtrar por transportadora'></select></label>
-<label>Buscar cliente <input type='search' class='nx-input rk-busca' placeholder='Código, nome, rede ou cidade' aria-label='Buscar cliente no ranking'></label>
+<label>Buscar cliente <input type='search' class='nx-input rk-busca' placeholder='Rede, código, loja ou cidade' aria-label='Buscar cliente no ranking'></label>
 <label>Mínimo de entregas no período <select class='dash-select rk-min' aria-label='Mínimo de entregas no período'>
 <option value='1' selected>Todas</option>
 <option value='3'>3</option>
@@ -1055,10 +1055,10 @@
 </select></label>
 </div>
 </div>
-<p class='tc-lead'>De <b data-draw='rkTxt' data-k='de'>—</b> a <b data-draw='rkTxt' data-k='ate'>—</b>, <b data-draw='rkTxt' data-k='n'>—</b> clientes receberam <b data-draw='rkTxt' data-k='ent'>—</b> entregas.</p>
+<p class='tc-lead'>De <b data-draw='rkTxt' data-k='de'>—</b> a <b data-draw='rkTxt' data-k='ate'>—</b>, <b data-draw='rkTxt' data-k='n'>—</b> redes de clientes receberam <b data-draw='rkTxt' data-k='ent'>—</b> entregas.</p>
 <section class='tc-sec' id='clientes-rk-tabela'>
 <h2>Ranking do período <span class='nx-rk-per'>· <span data-draw='rkTxt' data-k='de'>—</span> a <span data-draw='rkTxt' data-k='ate'>—</span></span></h2>
-<p class='tc-note'>Cada linha soma as entregas do cliente (código) no período escolhido; com uma transportadora escolhida, só as entregas feitas por ela. As colunas de nível de serviço contam só as entregas avaliadas.</p>
+<p class='tc-note'>Cada linha soma as entregas da rede de clientes no período (todas as lojas juntas; cliente sem rede aparece pelo nome); com uma transportadora escolhida, só as entregas feitas por ela. As colunas de nível de serviço contam só as entregas avaliadas.</p>
 <div class='rk-wa'>
 <div class='rk-wa-btns'>
 <button type='button' class='nx-btn rk-copiar'>📋 Copiar quadro</button>
@@ -1075,9 +1075,8 @@
 <table class='tc-table nx-rk' data-source='clientes_rk_dia'>
 <thead><tr>
 <th class='n'>#</th>
-<th>Cliente</th>
-<th>Rede</th>
-<th>Cidade/UF</th>
+<th>Rede / cliente</th>
+<th class='n'>Lojas</th>
 <th class='n'>Entregas</th>
 <th class='n'>Rotas</th>
 <th class='n'>% Concluídas</th>
