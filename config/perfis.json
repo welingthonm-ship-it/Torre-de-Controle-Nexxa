@@ -111,6 +111,24 @@
         "consulta-cliente",
         "consulta-carga"
       ]
+    },
+    "cs_ampliado": {
+      "nome": "Customer Service (ampliado)",
+      "abas": [
+        "monitoramento",
+        "rotas",
+        "pendentes",
+        "prazos",
+        "mapa",
+        "pendencias",
+        "atrasos",
+        "reprogramacoes",
+        "transportadoras",
+        "motoristas",
+        "consulta-cliente",
+        "consulta-carga",
+        "cs"
+      ]
     }
   }
 }
