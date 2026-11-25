@@ -18,6 +18,12 @@ TC.rpVolRe = /volume[s]?\s*(excedid|em\s*excesso)|exce(sso|dente)\s*de\s*volume|
 TC.rpLista = () => {
   const g = dash.data('entregas_cliente'); if (g.status !== 'ok') return null;
   const out = [];
+  const push = (x) => { if (!TC.rpSaiu(x.r, x.nova)) out.push(x); };
+  // pedido que já voltou ao app em execução (em nova rota/data, ou a própria rota saiu do stand-by e foi expedida) sai da tela
+  const emExec = (x) => x.status_rota === 'EmExecucao' || x.status_rota === 'Concluida' || !!x.saida_cd;
+  const porCod = new Map();
+  g.data.forEach((x) => { if (x.codigo && emExec(x)) { const L = porCod.get(x.codigo) || []; L.push(x); porCod.set(x.codigo, L); } });
+  TC.rpSaiu = (r, nova) => (r.status_rota === 'EmExecucao' && !!r.saida_cd && String(r.saida_cd).slice(0, 10) > r.data) || (porCod.get(r.codigo) || []).some((x) => x !== r && x.data > r.data && x.data <= (nova || r.data));
   g.data.forEach((r) => {
     if (TC.isEnt(r) || TC.zerada(r) || r.situacao === 'Devolução total') return;
     if (/^REPO/i.test(String(r.rota || ''))) return;   // rotas de reposição ficam fora
@@ -26,13 +32,13 @@ TC.rpLista = () => {
     const reprogAl = al && (TC.alProxDia[al.tipo] || TC.rpVolRe.test(al.obs || ''));
     // motivo "volume excedido" registrado pelo motorista na entrega (ocorrência ou comentário do app)
     const vol = !reprogAl && TC.rpVolRe.test((r.ocorrencia || '') + ' ' + (r.comentario || ''));
-    if (vol) { out.push({r, al: null, vol: true, nova: diaSeg(r.data), prev: '', v: TC.rpVal.get(chave(r.id))}); return; }
+    if (vol) { push({r, al: null, vol: true, nova: diaSeg(r.data), prev: '', v: TC.rpVal.get(chave(r.id))}); return; }
     const naoSaiu = !reprogAl && r.status_rota === 'StandBy' && !r.saida_cd && r.data < TC.hojeISO();
     if (!reprogAl && !naoSaiu) return;
-    if (naoSaiu) { out.push({r, al: null, naoSaiu: true, nova: diaSeg(r.data), prev: '', v: TC.rpVal.get(chave(r.id))}); return; }
+    if (naoSaiu) { push({r, al: null, naoSaiu: true, nova: diaSeg(r.data), prev: '', v: TC.rpVal.get(chave(r.id))}); return; }
     const p = TC.prevAtual(r);
     const nova = p && p.tipo === 'reprog' && p.dt ? String(p.dt).slice(0, 10) : diaSeg(al.em ? isoDe(new Date(al.em)) : r.data);
-    out.push({r, al, nova, prev: p && p.tipo === 'reprog' ? p.dt : '', v: TC.rpVal.get(chave(r.id))});
+    push({r, al, nova, prev: p && p.tipo === 'reprog' ? p.dt : '', v: TC.rpVal.get(chave(r.id))});
   });
   return out;
 };
