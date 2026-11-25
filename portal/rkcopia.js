@@ -1,6 +1,6 @@
 // Rankings: copiar o quadro (imagem) e a mensagem para colar no WhatsApp.
 (() => {
-const NOMES = {motoristas_dia: 'motoristas', transportadoras_dia: 'transportadoras'};
+const NOMES = {motoristas_dia: 'motoristas', transportadoras_dia: 'transportadoras', clientes_rk_dia: 'clientes'};
 TC.rkLista = (id) => {
   const rows = TC.rkRows(id); if (!rows) return null;
   const st = TC.RK[id];
@@ -18,8 +18,8 @@ const saudacao = () => { const h = new Date().getHours(); return h < 12 ? 'Bom d
 TC.rkMsgPadrao = (id) => {
   const list = TC.rkLista(id); if (!list || !list.length) return '';
   const t = TC.rkSub(list), st = TC.RK[id];
-  const quem = id === 'motoristas_dia' ? (st.transp ? 'da transportadora ' + st.transp : 'das transportadoras') : 'das transportadoras';
-  const alvo = id === 'motoristas_dia' ? 'os motoristas' : 'as transportadoras';
+  const quem = id !== 'transportadoras_dia' ? (st.transp ? 'da transportadora ' + st.transp : 'das transportadoras') : 'das transportadoras';
+  const alvo = id === 'motoristas_dia' ? 'os motoristas' : id === 'clientes_rk_dia' ? 'as entregas nesses clientes' : 'as transportadoras';
   const extra = [];
   if (t.sla !== null && t.sla < 90) extra.push('as entregas dentro da janela (SLA janela em ' + pctTxt(t.sla) + ', meta 90%)');
   if (t.oc !== null && t.oc > 1) extra.push('as ocorrências (' + pctTxt(t.oc) + ' das entregas, limite 1%)');
@@ -52,13 +52,15 @@ const quebra = (ctx, txt, w) => {
   return out;
 };
 TC.rkCanvas = (id, msg) => {
-  const list = TC.rkLista(id); if (!list || !list.length) return null;
-  const st = TC.RK[id], R = TC.rkRange(id), t = TC.rkSub(list), mot = id === 'motoristas_dia';
+  const full = TC.rkLista(id); if (!full || !full.length) return null;
+  const st = TC.RK[id], R = TC.rkRange(id), t = TC.rkSub(full), mot = id === 'motoristas_dia', cli = id === 'clientes_rk_dia';
+  const list = cli ? full.slice(0, 40) : full;   // imagem de clientes: os 40 primeiros da ordem escolhida
   const F = 'Roboto, "Segoe UI", Arial, sans-serif';
   const cols = [
-    {h: '#', w: 46, a: 'c'}, {h: mot ? 'Motorista' : 'Transportadora', w: 230, a: 'l'}];
+    {h: '#', w: 46, a: 'c'}, {h: mot ? 'Motorista' : cli ? 'Cliente' : 'Transportadora', w: cli ? 300 : 230, a: 'l'}];
   if (mot) cols.push({h: 'Transportadora', w: 160, a: 'l'});
-  cols.push({h: 'Entregas', w: 90, a: 'r'}, {h: 'Viagens', w: 80, a: 'r'}, {h: '% Concluídas', w: 120, a: 'r'},
+  if (cli) cols.push({h: 'Cidade/UF', w: 170, a: 'l'});
+  cols.push({h: 'Entregas', w: 90, a: 'r'}, {h: cli ? 'Rotas' : 'Viagens', w: 80, a: 'r'}, {h: '% Concluídas', w: 120, a: 'r'},
     {h: 'Aderência app', w: 180, a: 'b', k: 'app', cor: '#7A5AF8'}, {h: 'SLA janela', w: 180, a: 'b', k: 'sla', cor: TC.pal[0]},
     {h: '% ocorr.', w: 90, a: 'r'}, {h: 'On Time', w: 180, a: 'b', k: 'ontime', cor: TC.pal[2]}, {h: 'OTIF', w: 180, a: 'b', k: 'otif', cor: TC.pal[3]});
   const W = cols.reduce((s, c) => s + c.w, 0) + 40, RH = 44, top = 96;
@@ -73,8 +75,8 @@ TC.rkCanvas = (id, msg) => {
   ctx.fillStyle = '#1B2B22'; ctx.font = '600 22px ' + F; ctx.textAlign = 'left';
   const tit = 'Ranking do período'; ctx.fillText(tit, 36, 38);
   const tw = ctx.measureText(tit).width; ctx.font = '20px ' + F; ctx.fillStyle = '#5A6B61';
-  ctx.fillText(' · ' + TC.fdt(R.de) + ' a ' + TC.fdt(R.ate) + (mot && st.transp ? ' · ' + st.transp : ''), 36 + tw, 38);
-  ctx.font = '14px ' + F; ctx.fillText('Torre de Controle Nexxa · ' + (mot ? 'Ranking de motoristas' : 'Ranking de transportadoras'), 36, 70);
+  ctx.fillText(' · ' + TC.fdt(R.de) + ' a ' + TC.fdt(R.ate) + ((mot || cli) && st.transp ? ' · ' + st.transp : ''), 36 + tw, 38);
+  ctx.font = '14px ' + F; ctx.fillText('Torre de Controle Nexxa · ' + (mot ? 'Ranking de motoristas' : cli ? 'Ranking de clientes' : 'Ranking de transportadoras'), 36, 70);
   // cabeçalho
   let y = top; ctx.fillStyle = '#F4F7F5'; ctx.fillRect(20, y, W - 40, RH);
   ctx.font = '600 15px ' + F; ctx.fillStyle = '#1F7A3A';
@@ -99,8 +101,8 @@ TC.rkCanvas = (id, msg) => {
     const yy = y + RH / 2; let xx = 20;
     ctx.font = (sub ? '600 ' : '') + '15px ' + F; ctx.fillStyle = sub ? '#3D3200' : '#1B2B22';
     const vals = sub
-      ? ['', (mot ? 'SUBTOTAL · ' + list.length + ' MOTORISTAS' : 'TOTAL · ' + list.length + ' TRANSPORTADORAS')].concat(mot ? [st.transp || 'Todas'] : [])
-      : [String(ix + 1), mot ? r.motorista : r.transportadora].concat(mot ? [r.transportadora] : []);
+      ? ['', (mot ? 'SUBTOTAL · ' + list.length + ' MOTORISTAS' : cli ? 'TOTAL · ' + full.length + ' CLIENTES' : 'TOTAL · ' + list.length + ' TRANSPORTADORAS')].concat(mot ? [st.transp || 'Todas'] : cli ? [''] : [])
+      : [String(ix + 1), mot ? r.motorista : cli ? (r.codigo ? r.codigo + ' · ' : '') + (r.cliente || '') : r.transportadora].concat(mot ? [r.transportadora] : cli ? [r.cidade || ''] : []);
     const d = sub ? t : r;
     vals.push(TC.fmt(d.entregas, 'int'), TC.fmt(d.viagens, 'int'), pctTxt(d.conc), null, null, pctTxt(d.oc), null, null);
     cols.forEach((c, i) => {

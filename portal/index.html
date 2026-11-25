@@ -17,6 +17,7 @@
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>2</span> Rankings</div>
 <button type='button' role='tab' data-tab='transportadoras' aria-selected='false' data-nome='Ranking de transportadoras' title='Ranking de transportadoras'><span class='nx-n'>2.1</span> <span class='nx-lab'>Transportadoras</span></button>
 <button type='button' role='tab' data-tab='motoristas' aria-selected='false' data-nome='Ranking de motoristas' title='Ranking de motoristas'><span class='nx-n'>2.2</span> <span class='nx-lab'>Motoristas</span></button>
+<button type='button' role='tab' data-tab='clientes-rk' aria-selected='false' data-nome='Ranking de clientes' title='Ranking de clientes'><span class='nx-n'>2.3</span> <span class='nx-lab'>Clientes</span></button>
 </div>
 <div class='nx-sg' role='presentation'><div class='nx-sg-h'><span class='nx-n'>3</span> Variável</div>
 <button type='button' role='tab' data-tab='variavel' aria-selected='false' data-nome='Variável - Transportadoras' title='Variável - Transportadoras'><span class='nx-n'>3.1</span> <span class='nx-lab'>Transportadoras</span></button>
@@ -1023,6 +1024,87 @@
 </dl>
 </details>
 </section>
+<section id='clientes-rk' class='nx-tab tc' role='tabpanel' aria-label='Ranking de clientes' data-rk='clientes_rk_dia' hidden>
+<div class='nx-per'>
+<div class='nx-per-dates'>
+<label>De <input type='date' class='nx-input nx-date' data-draw='perIn' data-k='de' aria-label='Data inicial'></label>
+<label>Até <input type='date' class='nx-input nx-date' data-draw='perIn' data-k='ate' aria-label='Data final'></label>
+</div>
+<div class='nx-per-quick' role='group' aria-label='Períodos rápidos'>
+<button type='button' class='nx-chip' data-per='7'>Últimos 7 dias</button>
+<button type='button' class='nx-chip' data-per='15'>Últimos 15 dias</button>
+<button type='button' class='nx-chip' data-per='30'>Últimos 30 dias</button>
+<button type='button' class='nx-chip' data-per='all'>Todo o período</button>
+</div>
+<div class='nx-per-opts'>
+<label>Ordenar por <select class='dash-select rk-ord' aria-label='Ordenar ranking por'>
+<option value='sla'>SLA janela</option>
+<option value='ontime'>On Time</option>
+<option value='otif'>OTIF</option>
+<option value='conc'>% Concluídas</option>
+<option value='app'>Aderência ao app</option>
+<option value='oc'>Menos ocorrências (%)</option>
+<option value='ocq'>Mais ocorrências (quantidade)</option>
+<option value='ent'>Volume de entregas</option>
+<option value='esp'>Maior espera no cliente</option>
+</select></label>
+<label class='rk-transp-l'>Transportadora <select class='dash-select rk-transp' data-draw='rkTransp' aria-label='Filtrar por transportadora'></select></label>
+<label>Buscar cliente <input type='search' class='nx-input rk-busca' placeholder='Código, nome, rede ou cidade' aria-label='Buscar cliente no ranking'></label>
+<label>Mínimo de entregas no período <select class='dash-select rk-min' aria-label='Mínimo de entregas no período'>
+<option value='1' selected>Todas</option>
+<option value='3'>3</option>
+<option value='5'>5</option>
+<option value='10'>10</option>
+</select></label>
+</div>
+</div>
+<p class='tc-lead'>De <b data-draw='rkTxt' data-k='de'>—</b> a <b data-draw='rkTxt' data-k='ate'>—</b>, <b data-draw='rkTxt' data-k='n'>—</b> clientes receberam <b data-draw='rkTxt' data-k='ent'>—</b> entregas.</p>
+<section class='tc-sec' id='clientes-rk-tabela'>
+<h2>Ranking do período <span class='nx-rk-per'>· <span data-draw='rkTxt' data-k='de'>—</span> a <span data-draw='rkTxt' data-k='ate'>—</span></span></h2>
+<p class='tc-note'>Cada linha soma as entregas do cliente (código) no período escolhido; com uma transportadora escolhida, só as entregas feitas por ela. As colunas de nível de serviço contam só as entregas avaliadas.</p>
+<div class='rk-wa'>
+<label class='rk-wa-l'>Mensagem para o WhatsApp <textarea class='nx-input rk-msg' data-draw='rkMsg' rows='2' aria-label='Mensagem que vai junto do quadro'></textarea></label>
+<div class='rk-wa-btns'>
+<button type='button' class='nx-btn rk-copiar'>📋 Copiar quadro</button>
+<button type='button' class='nx-btn rk-copiar-txt'>Copiar só o texto</button>
+<button type='button' class='nx-btn rk-baixar'>⬇ Baixar imagem</button>
+<button type='button' class='nx-chip rk-msg-reset'>Refazer mensagem</button>
+<span class='rk-aviso rk-av-copiado' hidden>✓ Quadro copiado com a mensagem. Cole (Ctrl+V) no grupo do WhatsApp.</span>
+<span class='rk-aviso rk-av-texto' hidden>✓ Texto copiado.</span>
+<span class='rk-aviso rk-av-baixado' hidden>✓ Imagem baixada. Anexe no WhatsApp.</span>
+<span class='rk-aviso rk-av-sel' hidden>Texto selecionado: use Ctrl+C para copiar.</span>
+<span class='rk-aviso rk-av-vazio' hidden>Nada para copiar com esses filtros.</span>
+<span class='rk-aviso rk-av-erro' hidden>Não foi possível copiar nem baixar a imagem neste navegador.</span>
+</div>
+</div>
+<div class='tc-tablewrap'>
+<table class='tc-table nx-rk' data-source='clientes_rk_dia'>
+<thead><tr>
+<th class='n'>#</th>
+<th>Cliente</th>
+<th>Rede</th>
+<th>Cidade/UF</th>
+<th class='n'>Entregas</th>
+<th class='n'>Rotas</th>
+<th class='n'>% Concluídas</th>
+<th>Aderência app</th>
+<th>SLA janela</th>
+<th class='n'>% ocorr.</th>
+<th>On Time</th>
+<th>OTIF</th>
+<th class='n'>Ocorrências</th>
+<th class='n'>Falta</th>
+<th class='n'>Dev. total</th>
+<th class='n'>Avaria</th>
+<th class='n'>Qualidade</th>
+<th class='n'>Espera média</th>
+</tr></thead>
+<tbody data-draw='rk'></tbody>
+</table>
+</div>
+<p class='tc-empty rk-vazio' hidden>Nada com esse mínimo de entregas no período.</p>
+</section>
+</section>
 <section id='tv' class='nx-tab nx-tv' role='tabpanel' aria-label='Modo TV' data-day='latest' hidden>
 <div class='tv-top'>
 <div class='tv-left'><div class='tv-logo'><img alt='Nexxa' src='data:image/png;base64,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'></div><div class='tv-brand'><span class='tv-title'>Torre de Controle - Transporte</span><span class='tv-slide-name' data-draw='tvNome'>—</span></div></div>
@@ -1976,157 +2058,8 @@ sla_sim: sla[0], sla_aval: sla[1], ontime_sim: ot[0], ontime_aval: ot[1], otif_s
 });
 }
 });
-dash.calc('motoristas_dia', {
-inputs: ['entregas_cliente'],
-title: 'Nível de serviço por motorista e dia',
-description: 'Entregas, viagens, concluídas, ocorrências e entregas avaliadas e no padrão de SLA janela, On Time e OTIF, por motorista, transportadora e data de rota.',
-fn: (entregas_cliente) => {
-const grupos = new Map();
-entregas_cliente.forEach((r) => {
-const k = r.data + '|' + (r.motorista || 'Não informado') + '|' + (r.transportadora || 'Sem transportadora');
-if (!grupos.has(k)) grupos.set(k, []);
-grupos.get(k).push(r);
-});
-const conta = (rows, col) => { let sim = 0, aval = 0; rows.forEach((r) => { if (r[col] === 'SIM') { sim++; aval++; } else if (r[col] === 'NÃO') aval++; }); return [sim, aval]; };
-return Array.from(grupos.entries()).map(([k, rows]) => {
-const p = k.split('|');
-const sla = conta(rows, 'sla_janela'), ot = conta(rows, 'on_time'), of = conta(rows, 'otif'), ap = conta(rows, 'app_no_raio');
-return {
-data: p[0], motorista: p[1], transportadora: p.slice(2).join('|'), viagens: new Set(rows.map((r) => r.rota)).size, entregas: rows.length,
-concluidas: rows.filter((r) => r.entregue === 'SIM').length, ocorrencias: rows.filter((r) => r.ocorrencia).length,
-oc_falta: rows.filter((r) => r.ocorrencia === 'Falta').length, oc_devolucao: rows.filter((r) => r.ocorrencia === 'Devolução Total').length, oc_avaria: rows.filter((r) => r.ocorrencia === 'Avaria').length, oc_qualidade: rows.filter((r) => r.ocorrencia === 'Qualidade').length,
-sla_sim: sla[0], sla_aval: sla[1], ontime_sim: ot[0], ontime_aval: ot[1], otif_sim: of[0], otif_aval: of[1], app_sim: ap[0], app_aval: ap[1]
-};
-});
-}
-});
-TC.RK = {
-transportadoras_dia: {key: (r) => r.transportadora, nome: (t) => t.transportadora, cols: [], per: {de: null, ate: null}, ord: 'sla', min: 10, quick: '7'},
-motoristas_dia: {key: (r) => r.motorista + '|' + r.transportadora, nome: (t) => t.motorista + ' · ' + t.transportadora, cols: ['transportadora'], per: {de: null, ate: null}, ord: 'sla', min: 10, quick: '7', transp: ''}
-};
-TC.rkOf = (el) => { const sec = el.closest('[data-rk]'); return sec ? sec.dataset.rk : null; };
-TC.rkDias = () => { const g = dash.data('resumo_dia'); return g.status === 'ok' ? g.data.map((r) => r.data).sort() : []; };
-TC.rkRange = (id) => {
-const d = TC.rkDias(); if (!d.length) return null;
-const lo = d[0], hi = d[d.length - 1], st = TC.RK[id];
-let de = st.per.de, ate = st.per.ate;
-if (!de || !ate) { ate = hi; const t = new Date(hi + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() - 6); de = t.toISOString().slice(0, 10); }
-if (de < lo) de = lo; if (ate > hi) ate = hi; if (de > ate) { const t = de; de = ate; ate = t; }
-return {de, ate, lo, hi};
-};
-TC.rkPct = (a, b) => (b ? Math.round(a / b * 1000) / 10 : null);
-TC.rkRows = (id) => {
-const g = dash.data(id), R = TC.rkRange(id), st = TC.RK[id];
-if (g.status !== 'ok' || !R || !Array.isArray(g.data)) return null;
-const m = new Map();
-g.data.forEach((r) => {
-if (r.data < R.de || r.data > R.ate) return;
-if (st.transp && r.transportadora !== st.transp) return;
-const k = st.key(r);
-const t = m.get(k) || {transportadora: r.transportadora, motorista: r.motorista, entregas: 0, viagens: 0, concluidas: 0, ocorrencias: 0, oc_falta: 0, oc_devolucao: 0, oc_avaria: 0, oc_qualidade: 0, sla_sim: 0, sla_aval: 0, ontime_sim: 0, ontime_aval: 0, otif_sim: 0, otif_aval: 0, app_sim: 0, app_aval: 0};
-['entregas', 'viagens', 'concluidas', 'ocorrencias', 'oc_falta', 'oc_devolucao', 'oc_avaria', 'oc_qualidade', 'sla_sim', 'sla_aval', 'ontime_sim', 'ontime_aval', 'otif_sim', 'otif_aval', 'app_sim', 'app_aval'].forEach((f) => { t[f] += +r[f] || 0; });
-m.set(k, t);
-});
-return Array.from(m.values()).map((t) => Object.assign(t, {
-conc: TC.rkPct(t.concluidas, t.entregas), sla: TC.rkPct(t.sla_sim, t.sla_aval), ontime: TC.rkPct(t.ontime_sim, t.ontime_aval),
-otif: TC.rkPct(t.otif_sim, t.otif_aval), oc: TC.rkPct(t.ocorrencias, t.entregas), ocq: t.ocorrencias, ent: t.entregas, app: TC.rkPct(t.app_sim, t.app_aval)
-}));
-};
-TC.rkSort = (rows, k) => rows.slice().sort((a, b) => {
-const va = a[k], vb = b[k];
-if (va === null && vb === null) return b.entregas - a.entregas;
-if (va === null) return 1; if (vb === null) return -1;
-return (k === 'oc' ? va - vb : vb - va) || (b.entregas - a.entregas);
-});
-TC.rkRedraw = () => ['perIn', 'rkTxt', 'rkTop', 'rk', 'rkApp'].forEach((n) => dash.draw(n));
-TC.rkChips = () => document.querySelectorAll('[data-rk] .nx-chip[data-per]').forEach((c) => { const id = TC.rkOf(c); c.classList.toggle('is-on', !!id && c.dataset.per === TC.RK[id].quick); });
-document.querySelectorAll('[data-rk] .nx-chip[data-per]').forEach((c) => c.addEventListener('click', () => {
-const id = TC.rkOf(c), d = TC.rkDias(); if (!id || !d.length) return;
-const st = TC.RK[id]; st.quick = c.dataset.per;
-if (c.dataset.per === 'all') st.per = {de: d[0], ate: d[d.length - 1]};
-else { const n = +c.dataset.per, hi = d[d.length - 1]; const t = new Date(hi + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() - (n - 1)); st.per = {de: t.toISOString().slice(0, 10), ate: hi}; }
-TC.rkChips(); TC.rkRedraw();
-}));
-TC.rkChips();
-document.querySelectorAll('[data-rk] .rk-ord').forEach((s) => s.addEventListener('change', () => { const id = TC.rkOf(s); if (id) { TC.RK[id].ord = s.value; TC.rkRedraw(); } }));
-document.querySelectorAll('[data-rk] .rk-transp').forEach((s) => s.addEventListener('change', () => { const id = TC.rkOf(s); if (id) { TC.RK[id].transp = s.value; TC.rkRedraw(); } }));
-dash.draw('rkTransp', (sel) => {
-const id = TC.rkOf(sel), g = id ? dash.data(id) : null, st = id && TC.RK[id];
-const lista = g && g.status === 'ok' && Array.isArray(g.data) ? Array.from(new Set(g.data.map((r) => r.transportadora).filter(Boolean))).sort((a, b) => a.localeCompare(b, 'pt-BR')) : [];
-const op = (v, t) => { const o = document.createElement('option'); o.value = v; o.textContent = t; return o; };
-sel.replaceChildren(op('', 'Todas'), ...lista.map((t) => op(t, t)));
-if (st && st.transp && !lista.includes(st.transp)) st.transp = '';
-sel.value = st ? st.transp : '';
-});
-document.querySelectorAll('[data-rk] .rk-min').forEach((s) => s.addEventListener('change', () => { const id = TC.rkOf(s); if (id) { TC.RK[id].min = +s.value || 1; TC.rkRedraw(); } }));
-dash.draw('perIn', (inp) => {
-const id = TC.rkOf(inp); if (!id) return;
-const R = TC.rkRange(id); if (!R) return;
-inp.min = R.lo; inp.max = R.hi;
-if (document.activeElement !== inp) inp.value = R[inp.dataset.k];
-inp.onchange = () => {
-if (!(inp.value && inp.validity.valid)) return;
-const cur = TC.rkRange(id), st = TC.RK[id]; st.per = {de: cur.de, ate: cur.ate}; st.per[inp.dataset.k] = inp.value; st.quick = ''; TC.rkChips(); TC.rkRedraw();
-};
-inp.onblur = () => { const r = TC.rkRange(id); if (r) inp.value = r[inp.dataset.k]; };
-});
-dash.draw('rkTxt', (el) => {
-const id = TC.rkOf(el); const R = id && TC.rkRange(id), rows = id && TC.rkRows(id);
-if (!R || !rows) { el.textContent = '—'; return; }
-const k = el.dataset.k;
-el.textContent = k === 'de' || k === 'ate' ? TC.fdt(R[k]) : k === 'n' ? TC.fmt(id === 'motoristas_dia' ? new Set(rows.map((r) => r.motorista)).size : rows.length, 'int') : TC.fmt(d3.sum(rows, (r) => r.entregas), 'int');
-});
-dash.draw('rkTop', (el) => {
-const id = TC.rkOf(el); const rows = id && TC.rkRows(id);
-if (!rows) { el.textContent = '—'; return; }
-const k = el.dataset.k, st = TC.RK[id], ok = rows.filter((r) => r.entregas >= st.min && r[k] !== null && r.motorista !== 'Não informado');
-const top = ok.length ? TC.rkSort(ok, k)[0] : null;
-const qtd = (n) => TC.fmt(n, 'int') + (+n === 1 ? ' ocorrência' : ' ocorrências');
-el.textContent = !top ? '—' : el.dataset.p === 'nome' ? st.nome(top) : el.dataset.p === 'qtd' ? qtd(top.ocorrencias) : el.dataset.p === 'pct' ? TC.fmt(top.oc, 'pct') : k === 'ocq' ? TC.fmt(top.ocq, 'int') : TC.fmt(top[k], 'pct');
-});
-dash.draw('rk', (tb) => {
-const id = TC.rkOf(tb); const rows = id && TC.rkRows(id);
-const vazio = tb.closest('[data-rk]').querySelector('.rk-vazio');
-if (!rows) { tb.replaceChildren(); return; }
-const st = TC.RK[id];
-const list = TC.rkSort(rows.filter((r) => r.entregas >= st.min), st.ord);
-if (vazio) vazio.hidden = list.length > 0;
-const bar = (v, cor) => {
-const w = document.createElement('span'); w.className = 'tc-prog';
-const i = document.createElement('i'); const b = document.createElement('b'); b.style.width = (v || 0) + '%'; b.style.background = cor; i.append(b);
-const l = document.createElement('span'); l.textContent = TC.fmt(v, 'pct'); w.append(i, l); return w;
-};
-const sub = (() => {
-if (!list.length) return null;
-const t = {}; ['entregas', 'viagens', 'concluidas', 'ocorrencias', 'oc_falta', 'oc_devolucao', 'oc_avaria', 'oc_qualidade', 'sla_sim', 'sla_aval', 'ontime_sim', 'ontime_aval', 'otif_sim', 'otif_aval', 'app_sim', 'app_aval'].forEach((f) => { t[f] = d3.sum(list, (r) => +r[f] || 0); });
-Object.assign(t, {conc: TC.rkPct(t.concluidas, t.entregas), sla: TC.rkPct(t.sla_sim, t.sla_aval), ontime: TC.rkPct(t.ontime_sim, t.ontime_aval), otif: TC.rkPct(t.otif_sim, t.otif_aval), oc: TC.rkPct(t.ocorrencias, t.entregas), app: TC.rkPct(t.app_sim, t.app_aval)});
-const tr = document.createElement('tr'); tr.className = 'nx-rk-sub';
-const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; if (txt !== null) c.textContent = txt; tr.append(c); return c; };
-td('', 'n');
-if (id === 'motoristas_dia') { td('Subtotal · ' + TC.fmt(new Set(list.map((r) => r.motorista)).size, 'int') + ' motoristas', 'nx-sub-l'); td(st.transp || 'Todas as transportadoras'); }
-else td('Total · ' + TC.fmt(list.length, 'int') + ' transportadoras', 'nx-sub-l');
-td(TC.fmt(t.entregas, 'int'), 'n'); td(TC.fmt(t.viagens, 'int'), 'n'); td(TC.fmt(t.conc, 'pct'), 'n');
-td(null).append(bar(t.app, '#7A5AF8')); td(null).append(bar(t.sla, TC.pal[0])); td(TC.fmt(t.oc, 'pct'), 'n');
-td(null).append(bar(t.ontime, TC.pal[2])); td(null).append(bar(t.otif, TC.pal[3]));
-const oq = td(TC.fmt(t.ocorrencias, 'int'), 'n nx-ocq'); if (t.ocorrencias > 0) oq.classList.add('has');
-['oc_falta', 'oc_devolucao', 'oc_avaria', 'oc_qualidade'].forEach((f) => { const c = td(t[f] ? TC.fmt(t[f], 'int') : '–', 'n nx-octp'); if (t[f]) c.classList.add('has'); });
-return tr;
-})();
-tb.replaceChildren(...(sub ? [sub] : []), ...list.map((r, ix) => {
-const tr = document.createElement('tr'); if (ix < 3) tr.className = 'is-top';
-const td = (txt, cls) => { const c = document.createElement('td'); if (cls) c.className = cls; if (txt !== null) c.textContent = txt; tr.append(c); return c; };
-const pos = td(null, 'n nx-pos'); const pb = document.createElement('b'); if (ix < 3) pb.className = 'p' + (ix + 1); pb.textContent = ix + 1; pos.append(pb);
-td(id === 'motoristas_dia' ? r.motorista : r.transportadora);
-st.cols.forEach((c) => td(r[c]));
-td(TC.fmt(r.entregas, 'int'), 'n'); td(TC.fmt(r.viagens, 'int'), 'n'); td(TC.fmt(r.conc, 'pct'), 'n');
-td(null).append(bar(r.app, '#7A5AF8')); td(null).append(bar(r.sla, TC.pal[0])); td(TC.fmt(r.oc, 'pct'), 'n');
-td(null).append(bar(r.ontime, TC.pal[2])); td(null).append(bar(r.otif, TC.pal[3]));
-const oq = td(TC.fmt(r.ocorrencias, 'int'), 'n nx-ocq'); if (+r.ocorrencias > 0) oq.classList.add('has');
-['oc_falta', 'oc_devolucao', 'oc_avaria', 'oc_qualidade'].forEach((f) => { const c = td(+r[f] ? TC.fmt(r[f], 'int') : '–', 'n nx-octp'); if (+r[f]) c.classList.add('has'); });
-return tr;
-}));
-});
 </script>
+<script src='rank.js'></script>
 <script src='rkcopia.js'></script>
 <script>
 TC.tvRow = (cells) => { const tr = document.createElement('tr'); cells.forEach(([v, cls]) => { const td = document.createElement('td'); if (cls) td.className = cls; if (v instanceof Node) td.append(v); else td.textContent = v; tr.append(td); }); return tr; };
