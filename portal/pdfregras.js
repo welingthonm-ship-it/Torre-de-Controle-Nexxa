@@ -24,6 +24,9 @@ return async (doc) => {
 const PW = 595.28, PH = 841.89, M = 48, CW = PW - 2 * M;
 const G1 = '#0B3B22', G2 = '#2E8B4A', SOFT = '#EAF5EE', TXT = '#1F2A24', MUT = '#5B6B62';
 const logo = await logoJpeg('#FFFFFF');
+// logo do cliente (opcional): imagem data URL, convertida para JPEG
+let lcli = null;
+if (doc.logoCli) { try { const im = new Image(); im.src = doc.logoCli; await im.decode(); const cv = document.createElement('canvas'); cv.width = im.naturalWidth; cv.height = im.naturalHeight; const g = cv.getContext('2d'); g.fillStyle = '#FFFFFF'; g.fillRect(0, 0, cv.width, cv.height); g.drawImage(im, 0, 0); lcli = {w: cv.width, h: cv.height, bin: atob(cv.toDataURL('image/jpeg', 0.92).split(',')[1])}; } catch (e) { lcli = null; } }
 const pages = []; let ops = [], y = 0;
 const T = (x, yy, s, size, bold, color) => { ops.push('BT /' + (bold ? 'F2' : 'F1') + ' ' + size + ' Tf ' + rgb(color || TXT) + ' rg ' + x.toFixed(2) + ' ' + yy.toFixed(2) + ' Td ' + pdfStr(s) + ' Tj ET'); };
 const R = (x, yy, w, h, color) => { ops.push(rgb(color) + ' rg ' + [x, yy, w, h].map((v) => v.toFixed(2)).join(' ') + ' re f'); };
@@ -36,8 +39,10 @@ if (logo) { const w = 420, h = w * logo.h / logo.w; ops.push('q /GSw gs ' + [Mat
 // faixa do topo
 R(0, PH - 86, PW, 86, G1); R(0, PH - 90, PW, 4, G2);
 if (logo) { const h = 30, w = h * logo.w / logo.h; R(M - 8, PH - 66, w + 16, h + 12, '#FFFFFF'); ops.push('q ' + w.toFixed(2) + ' 0 0 ' + h + ' ' + M + ' ' + (PH - 60) + ' cm /ImL Do Q'); }
-T(PW - M - tw(doc.titulo, 15, true), PH - 42, doc.titulo, 15, true, '#FFFFFF');
-T(PW - M - tw(doc.sub, 9.5), PH - 60, doc.sub, 9.5, false, '#CFE8D7');
+let xr = PW - M;
+if (lcli) { const bh = 52, bw0 = bh * lcli.w / lcli.h, bw = Math.min(130, bw0), hh = bw * lcli.h / lcli.w; R(PW - M - bw - 8, PH - 74, bw + 16, 62, '#FFFFFF'); ops.push('q ' + bw.toFixed(2) + ' 0 0 ' + hh.toFixed(2) + ' ' + (PW - M - bw).toFixed(2) + ' ' + (PH - 43 - hh / 2).toFixed(2) + ' cm /ImC Do Q'); xr = PW - M - bw - 20; }
+T(xr - tw(doc.titulo, 15, true), PH - 42, doc.titulo, 15, true, '#FFFFFF');
+T(xr - tw(doc.sub, 9.5), PH - 60, doc.sub, 9.5, false, '#CFE8D7');
 // rodapé
 L(M, 40, PW - M, 40, '#C9D6CE', 0.6);
 T(M, 26, doc.rodape, 8, false, MUT);
@@ -96,9 +101,10 @@ const catalogo = add(null), arvore = add(null);
 const f1 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');
 const f2 = add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
 const gs = add('<< /Type /ExtGState /ca 0.07 /CA 0.07 >>');
-let imL = null;
+let imL = null, imC = null;
+if (lcli) imC = add({head: '<< /Type /XObject /Subtype /Image /Width ' + lcli.w + ' /Height ' + lcli.h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + lcli.bin.length + ' >>', bin: lcli.bin});
 if (logo) imL = add({head: '<< /Type /XObject /Subtype /Image /Width ' + logo.w + ' /Height ' + logo.h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + logo.bin.length + ' >>', bin: logo.bin});
-const res = '<< /Font << /F1 ' + f1 + ' 0 R /F2 ' + f2 + ' 0 R >> /ExtGState << /GSw ' + gs + ' 0 R >>' + (imL ? ' /XObject << /ImL ' + imL + ' 0 R /ImW ' + imL + ' 0 R >>' : '') + ' >>';
+const res = '<< /Font << /F1 ' + f1 + ' 0 R /F2 ' + f2 + ' 0 R >> /ExtGState << /GSw ' + gs + ' 0 R >>' + ((imL || imC) ? ' /XObject << ' + (imL ? '/ImL ' + imL + ' 0 R /ImW ' + imL + ' 0 R ' : '') + (imC ? '/ImC ' + imC + ' 0 R' : '') + ' >>' : '') + ' >>';
 const kids = pages.map((p) => { const st = p.join('\n'); const c = add({head: '<< /Length ' + st.length + ' >>', bin: st}); return add('<< /Type /Page /Parent ' + arvore + ' 0 R /MediaBox [0 0 ' + PW + ' ' + PH + '] /Resources ' + res + ' /Contents ' + c + ' 0 R >>'); });
 objs[catalogo - 1] = '<< /Type /Catalog /Pages ' + arvore + ' 0 R >>';
 objs[arvore - 1] = '<< /Type /Pages /Kids [' + kids.map((k) => k + ' 0 R').join(' ') + '] /Count ' + kids.length + ' >>';

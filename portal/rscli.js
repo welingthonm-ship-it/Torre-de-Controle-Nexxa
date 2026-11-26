@@ -28,7 +28,7 @@ const aplica = (txt) => {
   }
   document.querySelectorAll('#rs-cli-limpar').forEach((b) => { b.hidden = !F.cli; });
   msg('');
-  TC.rsRedraw();
+  TC.rsRedraw(); dash.draw('rsCliLogo');
 };
 document.querySelectorAll('#rs-cli').forEach((i) => {
   i.value = F.cli ? F.cli.txt : '';
@@ -41,6 +41,20 @@ const n0 = (v) => { const x = +v; return isFinite(x) ? x : 0; };
 const pct = (s, a) => (a ? (s / a * 100).toFixed(1).replace('.', ',') + '%' : '—');
 const hm = (dt) => { const s = TC.fdt(dt); return s.length > 10 ? s.slice(0, 5) + ' ' + s.slice(11, 16) : s; };
 const conta = (rows, col) => { let s = 0, a = 0; rows.forEach((r) => { if (r[col] === 'SIM') { s++; a++; } else if (r[col] === 'NÃO') a++; }); return [s, a]; };
+// ---- logo do cliente: usa os logos já cadastrados por rede (Atualizar dados › Logos dos clientes) ----
+const redeDe = (c) => { if (!c) return ''; if (c.t === 'rede') return c.v; const g = dash.data('entregas_cliente'); const r = g.status === 'ok' ? g.data.find((x) => x.codigo === c.v && x.grupo) : null; return r ? r.grupo : (c.txt || ''); };
+TC.rsCliLogoImg = (c) => (TC.logoDe ? TC.logoDe(redeDe(c)) : null);
+dash.draw('rsCliLogo', (box) => {
+  box.replaceChildren(); if (!F.cli) return;
+  const rede = redeDe(F.cli), img = TC.rsCliLogoImg(F.cli), k = TC.logoChave ? TC.logoChave(rede) : '';
+  if (img) { const i = el('img', 'nx-rs-logo'); i.src = img; i.alt = 'Logo ' + rede; box.append(i); }
+  if (!TC.alPode || !k) { if (!img) box.append(el('span', 'tc-sub', 'Sem logo cadastrado')); return; }
+  const inp = el('input'); inp.type = 'file'; inp.accept = 'image/png,image/jpeg,image/webp,image/svg+xml'; inp.hidden = true;
+  const bt = el('button', 'nx-chip', img ? 'Trocar logo' : '🖼 Enviar logo da rede'); bt.type = 'button'; bt.onclick = () => inp.click();
+  inp.onchange = async () => { const f = inp.files && inp.files[0]; if (!f) return; try { const im = await TC.logoReduz(f); const d = await TC.logoDb(); await d.doc('logos/' + k).set({grupo: rede, img: im, em: new Date().toISOString()}); if (TC.log) TC.log('Logo do cliente enviado', {detalhe: 'Rede ' + rede}); } catch (er) { box.append(el('span', 'nx-al-err', ' Não foi possível salvar o logo.')); } };
+  box.append(bt, inp);
+});
+
 TC.rsCliDoc = () => {
   if (!F.cli) return null;
   const R = TC.rsRange(), g = dash.data('entregas_cliente'); if (!R || g.status !== 'ok') return null;
@@ -80,14 +94,24 @@ TC.rsCliDoc = () => {
     B.push({t: 'table', cols: [{h: 'Data', w: 10}, {h: 'Rota', w: 12}, {h: 'Alerta', w: 30}, {h: 'Observação', w: 38}, {h: 'Entregas', w: 10}],
       rows: Array.from(als.values()).map((x) => [TC.fdt(x.r.data).slice(0, 5), x.r.rota, TC.alTipos[x.a.tipo] || x.a.tipo, x.a.obs || '—', String(x.n)])});
   }
-  // entregas
+  // resumo por loja: expedição, saída do CD, cidade e entrega realizada ou prevista
   const sit = (r) => (TC.isEnt(r) ? (r.ocorrencia ? 'Entregue c/ ocorrência' : 'Entregue') : r.situacao === 'Devolução total' ? 'Devolução total' : TC.pdCls(r) === 'atr' ? 'Atrasada' : 'Pendente');
-  const quando = (r) => { if (r.chegada_real) return 'Chegou ' + hm(r.chegada_real); const p = TC.prevAtual(r); return p && p.dt ? 'Prev. ' + hm(p.dt) : '—'; };
-  const lim = 300, E = rows.slice().sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : String(a.rota).localeCompare(String(b.rota)) || (+a.seq_planejada || 0) - (+b.seq_planejada || 0)));
-  B.push({t: 'h1', s: 'Entregas (' + rows.length + ')'});
-  B.push({t: 'table', cols: rede ? [{h: 'Data', w: 9}, {h: 'Rota', w: 11}, {h: 'Loja', w: 30}, {h: 'Janela', w: 12}, {h: 'Situação', w: 17}, {h: 'Chegada / previsão', w: 17}, {h: 'SLA', w: 7}, {h: 'Ocorrência', w: 13}] : [{h: 'Data', w: 10}, {h: 'Rota', w: 12}, {h: 'Janela', w: 13}, {h: 'Situação', w: 20}, {h: 'Chegada / previsão', w: 20}, {h: 'SLA', w: 8}, {h: 'Ocorrência', w: 17}],
-    rows: E.slice(0, lim).map((r) => [TC.fdt(r.data).slice(0, 5), r.rota].concat(rede ? [(r.codigo ? r.codigo + ' · ' : '') + (r.cliente || '')] : [], [r.janela || '—', sit(r), quando(r), r.sla_janela || '—', r.ocorrencia || '—']))});
+  const rotaAll = new Map(); g.data.forEach((r) => { const k = r.data + '|' + r.rota; if (porRota.has(k)) { if (!rotaAll.has(k)) rotaAll.set(k, []); rotaAll.get(k).push(r); } });
+  const exped = (r) => {
+    const rs = rotaAll.get(r.data + '|' + r.rota) || [r];
+    const s0 = rs.map((x) => x.saida_cd).filter(Boolean).sort()[0] || '';
+    const saida = s0 ? hm(TC.saidaReal(s0)) : '—';
+    const st = r.status_rota;
+    const txt = s0 ? (st === 'Concluida' ? 'Expedida · rota concluída' : 'Expedida · em rota') : st === 'StandBy' ? 'Não expedida (stand-by)' : st === 'Baldeio' ? 'Baldeio' : 'Aguardando saída';
+    return {txt, saida};
+  };
+  const entrega = (r) => { if (r.chegada_real && TC.isEnt(r)) return 'Entregue ' + hm(r.chegada_real); if (r.chegada_real) return 'Chegou ' + hm(r.chegada_real); const p = TC.prevAtual(r); return p && p.dt ? 'Previsão ' + hm(p.dt) + (p.standby ? ' (no CD)' : '') : '—'; };
+  const lim = 300, E = rows.slice().sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : String(a.cliente || '').localeCompare(String(b.cliente || '')) || String(a.rota).localeCompare(String(b.rota))));
+  B.push({t: 'h1', s: 'Resumo por loja (' + new Set(rows.map((r) => r.codigo)).size + (rede ? ' lojas' : ' loja') + ', ' + rows.length + ' entregas)'});
+  B.push({t: 'table', cols: [{h: 'Data', w: 8}, {h: 'Loja', w: 25}, {h: 'Cidade/UF', w: 15}, {h: 'Rota', w: 10}, {h: 'Expedição', w: 17}, {h: 'Saída CD', w: 11}, {h: 'Entrega', w: 18}, {h: 'Situação', w: 14}],
+    rows: E.slice(0, lim).map((r) => { const x = exped(r); return [TC.fdt(r.data).slice(0, 5), (r.codigo ? r.codigo + ' · ' : '') + (r.cliente || ''), (r.cidade || '') + (r.uf ? '/' + r.uf : ''), r.rota, x.txt, x.saida, entrega(r), sit(r) + (r.janela ? ' · janela ' + r.janela : '')]; })});
   if (rows.length > lim) B.push({t: 'p', s: 'Mostrando as ' + lim + ' primeiras entregas. Reduza o período para ver todas.'});
+  B.push({t: 'p', s: 'Saída do CD: horário de saída da rota (início + 30 min). Entrega: horário da chegada quando entregue; senão, a previsão atual.'});
   // dia a dia
   const dias = Array.from(new Set(rows.map((r) => r.data))).sort();
   if (dias.length > 1) {
@@ -96,7 +120,7 @@ TC.rsCliDoc = () => {
       rows: dias.map((d) => { const L = rows.filter((r) => r.data === d), a = conta(L, 'sla_janela'), b = conta(L, 'on_time'), c = conta(L, 'otif'), cc = L.filter((r) => TC.isEnt(r)).length; return [TC.fdt(d).slice(0, 5), String(L.length), pct(cc, L.length), String(L.length - cc), String(L.filter((r) => r.ocorrencia).length), pct(a[0], a[1]), pct(b[0], b[1]), pct(c[0], c[1])]; })});
   }
   const nome = rede ? 'Rede ' + F.cli.v : F.cli.txt;
-  return {titulo: 'Resumo do cliente', sub: periodo, rodape: 'W ARRAES - Gerência Transporte', blocos: B, arquivo: 'Resumo ' + nome.replace(/[\\/:*?"<>|]/g, ' ') + ' ' + (R.cDe === R.cAte ? R.cDe.split('-').reverse().join('-') : R.cDe.split('-').reverse().join('-') + ' a ' + R.cAte.split('-').reverse().join('-'))};
+  return {logoCli: TC.rsCliLogoImg(F.cli), titulo: 'Resumo do cliente', sub: periodo, rodape: 'W ARRAES - Gerência Transporte', blocos: B, arquivo: 'Resumo ' + nome.replace(/[\\/:*?"<>|]/g, ' ') + ' ' + (R.cDe === R.cAte ? R.cDe.split('-').reverse().join('-') : R.cDe.split('-').reverse().join('-') + ' a ' + R.cAte.split('-').reverse().join('-'))};
 };
 document.querySelectorAll('#rs-cli-pdf').forEach((b) => { b.onclick = async () => {
   if (!F.cli) { msg('rs-cli-sel'); return; }

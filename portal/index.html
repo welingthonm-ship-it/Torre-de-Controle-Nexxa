@@ -132,6 +132,7 @@
 <datalist id='rs-cli-dl' data-draw='rsCliDl' data-source='entregas_cliente'></datalist>
 <button type='button' class='nx-chip' id='rs-cli-limpar' hidden>Limpar</button>
 </div>
+<div class='nx-rs-logobox' data-draw='rsCliLogo' data-source='entregas_cliente'></div>
 <div class='nx-per-quick'>
 <button type='button' class='nx-btn nx-btn-sec' id='rs-cli-pdf'>📄 Relatório do cliente (PDF)</button>
 <span class='tc-sub rs-cli-msg rs-cli-sel' hidden>Escolha uma rede ou um cliente.</span>
@@ -2799,7 +2800,7 @@ TC.logoDe = (nome) => { const l = TC.logos.get(TC.logoChave(nome)); return l && 
 const db = () => (W.claude && W.claude.use ? W.claude.use('db').catch(() => null) : Promise.resolve(null));
 TC.logoDb = db;
 if (W.__nxLogoUnsub) { try { W.__nxLogoUnsub(); } catch (e) { /* segue */ } }
-db().then((d) => { if (!d) return; W.__nxLogoUnsub = d.collection('logos').onSnapshot((snap) => { TC.logos.clear(); snap.docs.forEach((doc) => { const a = doc.data(); if (a && a.img) TC.logos.set(doc.id, a); }); ['tvCli', 'logoList'].forEach((n) => dash.draw(n)); }, () => {}); });
+db().then((d) => { if (!d) return; W.__nxLogoUnsub = d.collection('logos').onSnapshot((snap) => { TC.logos.clear(); snap.docs.forEach((doc) => { const a = doc.data(); if (a && a.img) TC.logos.set(doc.id, a); }); ['tvCli', 'logoList', 'rsCliLogo'].forEach((n) => dash.draw(n)); }, () => {}); });
 // Reduz a imagem para no máximo 240 x 120 px e guarda como data URL (PNG).
 TC.logoReduz = (file) => new Promise((ok, fail) => {
 const fr = new FileReader();

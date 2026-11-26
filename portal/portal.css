@@ -550,3 +550,6 @@ tr.nx-jan-row td{background:#FFF4F2}
 .nx-rm-obs{background:#ECFDF3;border-left:4px solid #067647;padding:8px 10px;border-radius:6px;font-size:13px}
 .nx-al-rm{color:#B42318}
 .nx-var-tab td.nx-var-mid,td.nx-var-mid{color:#B54708;font-weight:600}
+.nx-rs-logobox:empty{display:none}
+.nx-rs-logobox{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px}
+.nx-rs-logo{max-height:40px;max-width:140px;border:1px solid var(--color-border-line);border-radius:6px;background:#fff;padding:3px}
