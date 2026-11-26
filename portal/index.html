@@ -125,6 +125,21 @@
 <button type='button' class='nx-chip' data-rs-c='all'>Todo o período</button>
 </div>
 </fieldset>
+<fieldset class='nx-per nx-rs-f nx-rs-cli'>
+<legend>Cliente</legend>
+<div class='nx-per-dates'>
+<label>Rede ou cliente <input type='search' class='nx-input' id='rs-cli' list='rs-cli-dl' placeholder='Todos os clientes' aria-label='Filtrar o resumo por rede ou cliente'></label>
+<datalist id='rs-cli-dl' data-draw='rsCliDl' data-source='entregas_cliente'></datalist>
+<button type='button' class='nx-chip' id='rs-cli-limpar' hidden>Limpar</button>
+</div>
+<div class='nx-per-quick'>
+<button type='button' class='nx-btn nx-btn-sec' id='rs-cli-pdf'>📄 Relatório do cliente (PDF)</button>
+<span class='tc-sub rs-cli-msg rs-cli-sel' hidden>Escolha uma rede ou um cliente.</span>
+<span class='tc-sub rs-cli-msg rs-cli-ger' hidden>Gerando…</span>
+<span class='tc-sub rs-cli-msg rs-cli-vazio' hidden>Sem entregas desse cliente no período.</span>
+<span class='nx-al-err rs-cli-msg rs-cli-erro' hidden>Não foi possível gerar o PDF.</span>
+</div>
+</fieldset>
 <fieldset class='nx-per nx-rs-f'>
 <legend>Data das entregas (chegada prevista no cliente)</legend>
 <div class='nx-per-dates'>
@@ -2354,6 +2369,7 @@ el.append(q); }
 <script src='reprog.js'></script>
 <script src='abapisca.js'></script>
 <script src='alrem.js'></script>
+<script src='rscli.js'></script>
 <script src='ocval.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>

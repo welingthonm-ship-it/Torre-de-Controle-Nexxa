@@ -69,11 +69,12 @@ TC.rsCalc = () => {
 const g = dash.data('entregas_cliente'), R = TC.rsRange();
 if (g.status !== 'ok' || !R) return null;
 const now = Math.floor(Date.now() / 60000);
-const key = JSON.stringify([R.cDe, R.cAte, R.eDe, R.eAte, now]);
+const key = JSON.stringify([R.cDe, R.cAte, R.eDe, R.eAte, now, F.cli || '']);
 if (TC.rsC && TC.rsC.src === g.data && TC.rsC.key === key) return TC.rsC.v;
 const byRota = new Map();
 g.data.forEach((r) => { const k = r.data + '|' + r.rota; let a = byRota.get(k); if (!a) { a = []; byRota.set(k, a); } a.push(r); });
-const filtra = (cDe, cAte, eDe, eAte) => g.data.filter((r) => r.data >= cDe && r.data <= cAte && (!eDe || TC.dnPrev(r) >= eDe) && (!eAte || TC.dnPrev(r) <= eAte));
+const okCli = (r) => !F.cli || (F.cli.t === 'rede' ? r.grupo === F.cli.v : r.codigo === F.cli.v);
+const filtra = (cDe, cAte, eDe, eAte) => g.data.filter((r) => r.data >= cDe && r.data <= cAte && (!eDe || TC.dnPrev(r) >= eDe) && (!eAte || TC.dnPrev(r) <= eAte) && okCli(r));
 const rows = filtra(R.cDe, R.cAte, R.eDe, R.eAte);
 const agg = TC.rsAgg(rows);
 const all = R.cDe === R.L.c0 && R.cAte === R.L.c1;
