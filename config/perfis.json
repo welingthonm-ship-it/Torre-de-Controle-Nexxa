@@ -53,9 +53,14 @@
     "cs": {
       "nome": "Customer",
       "abas": [
-        "cs",
+        "monitoramento",
+        "atrasos",
+        "reprogramacoes",
+        "clientes-rk",
         "consulta-cliente",
-        "consulta-carga"
+        "consulta-carga",
+        "cs",
+        "treinamento"
       ],
       "com_senha": true
     },
