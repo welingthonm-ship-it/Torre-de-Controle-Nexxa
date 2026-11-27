@@ -68,6 +68,7 @@
 </div>
 </div>
 </header>
+<div class='nx-rm-modal' id='exp-modal' role='dialog' aria-modal='true' aria-label='Previsão de expedição' hidden><div class='nx-rm-box' data-draw='expBox' data-source='entregas_cliente'></div></div>
 <div class='nx-rm-modal' id='al-rm' role='dialog' aria-modal='true' aria-label='Remover alerta com clientes informados' hidden><div class='nx-rm-box' data-draw='alRmBox' data-source='entregas_cliente'></div></div>
 <div class='nx-al-editor' id='alerta-editor' hidden>
 <div class='nx-al-head'><strong>Alerta da rota <span data-draw='alRota'>—</span></strong><span class='tc-sub'>O alerta aparece em todas as entregas pendentes dessa rota: Rotas do dia, Entregas pendentes, Rastreio - Consulta cliente e Modo TV.</span></div>
@@ -1966,10 +1967,11 @@ const now = Math.floor(Date.now() / 60000);
 const realDe = (x) => { if (x.chegada_real) return TC.tmin(x.chegada_real); const bx = TC.bxDe(x); return bx && bx.entregue_em ? TC.tmin(bx.entregue_em) : null; };
 // 1) última parada já atendida da rota: o caminhão estava lá; dali segue o percurso planejado
 const feitas = rs.filter((x) => x !== r).map((x) => ({x, real: realDe(x), cp: TC.tmin(x.chegada_prevista)})).filter((o) => o.real !== null && o.cp !== null && o.cp <= cp).sort((a, b) => b.real - a.real);
-let m, tipo, ref = null, atraso = 0;
+let m, tipo, ref = null, atraso = 0, expS = '';
 if (feitas.length) { ref = feitas[0]; m = ref.real + (cp - ref.cp); tipo = 'parada'; }
 else if (perc === null) { m = cp; tipo = 'planejada'; }
 else if (saida) { m = TC.tmin(saida) + perc; tipo = 'saida'; }
+else if (TC.expDe && TC.expDe(r.data, r.rota) && TC.tmin(TC.expDe(r.data, r.rota).prev) !== null) { expS = TC.expDe(r.data, r.rota).prev; const ex = TC.tmin(expS); m = Math.max(ex, now) + perc; tipo = 'expedicao'; }
 else if (now > sp) { m = now + perc; tipo = 'patio'; }
 else { m = cp; tipo = 'planejada'; }
 // 2) o tempo passou e a próxima parada ainda não foi atendida: empurra a previsão até agora
@@ -1986,7 +1988,7 @@ const ini = String(r.janela || '').split('–')[0];
 const semJanela = !fim || ini === fim;
 // Rota em stand-by e ainda sem horário de expedição (saída do CD): veículo em separação/carregamento
 const standby = !saida && rs.some((x) => x.status_rota === 'StandBy') && !rs.some((x) => x.saida_cd);
-return {tipo, dt: TC.mstr(m), m, perc, saida, ref, atraso, desvio: Math.round(m - cp), foraJanela: !semJanela && jf !== null && m > jf + 60, standby};
+return {tipo, dt: TC.mstr(m), m, perc, saida, ref, atraso, desvio: Math.round(m - cp), foraJanela: !semJanela && jf !== null && m > jf + 60, standby, exp: expS};
 };
 TC.prevTxt = (p) => {
 if (!p) return '—';
@@ -1995,7 +1997,7 @@ if (p.tipo === 'reprog') return 'Previsão ' + TC.fdt(p.dt) + ' · entrega repro
 const d = p.desvio, dv = Math.abs(d) < 5 ? 'no horário do roteirizador' : TC.fmin(Math.abs(d)) + (d > 0 ? ' depois' : ' antes') + ' do roteirizador';
 const base = p.tipo === 'parada' ? 'última parada atendida ' + TC.fdt(TC.mstr(p.ref.real)).slice(0, 5) + ' ' + TC.fdt(TC.mstr(p.ref.real)).slice(11) + ' (' + (p.ref.x.cliente || 'cliente') + ') + percurso planejado'
 : p.tipo === 'saida' ? 'saída real ' + TC.fdt(p.saida).slice(0, 5) + ' ' + TC.fdt(p.saida).slice(11) + ' + ' + TC.fmin(p.perc) + ' de percurso'
-: p.tipo === 'patio' ? 'veículo ainda no CD: agora + ' + TC.fmin(p.perc) + ' de percurso' : 'previsão do roteirizador (veículo ainda não saiu)';
+: p.tipo === 'expedicao' ? 'expedição prevista ' + String(p.exp).slice(8, 10) + '/' + String(p.exp).slice(5, 7) + ' ' + String(p.exp).slice(11, 16) + ' + ' + TC.fmin(p.perc) + ' de percurso' : p.tipo === 'patio' ? 'veículo ainda no CD: agora + ' + TC.fmin(p.perc) + ' de percurso' : 'previsão do roteirizador (veículo ainda não saiu)';
 return (p.standby ? 'Rota em stand-by: em separação/carregamento no CD · ' : '') + 'Previsão ' + TC.fdt(p.dt) + ' · ' + base + (p.atraso > 0 ? ' + ' + TC.fmin(p.atraso) + ' de atraso acumulado até agora' : '') + ' · ' + dv + (p.foraJanela ? ' · após a janela do cliente' : '');
 };
 if (window.__nxPrevTick) clearInterval(window.__nxPrevTick);
@@ -2372,6 +2374,7 @@ el.append(q); }
 <script src='abapisca.js'></script>
 <script src='alrem.js'></script>
 <script src='rscli.js'></script>
+<script src='expedicao.js'></script>
 <script src='ocval.js'></script>
 <script src='pdrel.js'></script>
 <link rel='stylesheet' href='usuarios.css'>
