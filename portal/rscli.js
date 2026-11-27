@@ -86,8 +86,8 @@ TC.rsCliDoc = () => {
   const RT = Array.from(porRota.values()).sort((a, b) => (a[0].data < b[0].data ? -1 : a[0].data > b[0].data ? 1 : String(a[0].rota).localeCompare(String(b[0].rota))));
   B.push({t: 'h1', s: 'Rotas do dia que atenderam o cliente (' + RT.length + ')'});
   B.push({t: 'table', cols: [{h: 'Data', w: 10}, {h: 'Rota', w: 12}, {h: 'Transportadora', w: 22}, {h: 'Motorista', w: 22}, {h: 'Status', w: 13}, {h: 'Entr.', w: 8}, {h: 'Concl.', w: 9}, {h: 'Pend.', w: 8}, {h: 'SLA', w: 10}],
-    rows: RT.slice(0, 150).map((L) => { const r0 = L[0], s2 = conta(L, 'sla_janela'); return [TC.fdt(r0.data).slice(0, 5), r0.rota, r0.transportadora || '—', r0.motorista || '—', TC.stLabel[r0.status_rota] || r0.status_rota || '—', String(L.length), String(L.filter((r) => TC.isEnt(r)).length), String(L.filter((r) => !TC.isEnt(r)).length), pct(s2[0], s2[1])]; })});
-  if (RT.length > 150) B.push({t: 'p', s: 'Mostrando as 150 primeiras rotas. Reduza o período para ver todas.'});
+    rows: RT.slice(0, TC.__rsCliFull ? Infinity : 150).map((L) => { const r0 = L[0], s2 = conta(L, 'sla_janela'); return [TC.fdt(r0.data).slice(0, 5), r0.rota, r0.transportadora || '—', r0.motorista || '—', TC.stLabel[r0.status_rota] || r0.status_rota || '—', String(L.length), String(L.filter((r) => TC.isEnt(r)).length), String(L.filter((r) => !TC.isEnt(r)).length), pct(s2[0], s2[1])]; })});
+  if (RT.length > 150 && !TC.__rsCliFull) B.push({t: 'p', s: 'Mostrando as 150 primeiras rotas. Reduza o período para ver todas.'});
   // alertas
   if (als.size) {
     B.push({t: 'h1', s: 'Alertas registrados'});
@@ -109,8 +109,8 @@ TC.rsCliDoc = () => {
   const lim = 300, E = rows.slice().sort((a, b) => (a.data < b.data ? -1 : a.data > b.data ? 1 : String(a.cliente || '').localeCompare(String(b.cliente || '')) || String(a.rota).localeCompare(String(b.rota))));
   B.push({t: 'h1', s: 'Resumo por loja (' + new Set(rows.map((r) => r.codigo)).size + (rede ? ' lojas' : ' loja') + ', ' + rows.length + ' entregas)'});
   B.push({t: 'table', cols: [{h: 'Data', w: 8}, {h: 'Loja', w: 25}, {h: 'Cidade/UF', w: 15}, {h: 'Rota', w: 10}, {h: 'Expedição', w: 17}, {h: 'Saída CD', w: 11}, {h: 'Entrega', w: 18}, {h: 'Situação', w: 14}],
-    rows: E.slice(0, lim).map((r) => { const x = exped(r); return [TC.fdt(r.data).slice(0, 5), (r.codigo ? r.codigo + ' · ' : '') + (r.cliente || ''), (r.cidade || '') + (r.uf ? '/' + r.uf : ''), r.rota, x.txt, x.saida, entrega(r), sit(r) + (r.janela ? ' · janela ' + r.janela : '')]; })});
-  if (rows.length > lim) B.push({t: 'p', s: 'Mostrando as ' + lim + ' primeiras entregas. Reduza o período para ver todas.'});
+    rows: E.slice(0, TC.__rsCliFull ? Infinity : lim).map((r) => { const x = exped(r); return [TC.fdt(r.data).slice(0, 5), (r.codigo ? r.codigo + ' · ' : '') + (r.cliente || ''), (r.cidade || '') + (r.uf ? '/' + r.uf : ''), r.rota, x.txt, x.saida, entrega(r), sit(r) + (r.janela ? ' · janela ' + r.janela : '')]; })});
+  if (rows.length > lim && !TC.__rsCliFull) B.push({t: 'p', s: 'Mostrando as ' + lim + ' primeiras entregas. Reduza o período para ver todas.'});
   B.push({t: 'p', s: 'Saída do CD: horário de saída da rota (início + 30 min). Entrega: horário da chegada quando entregue; senão, a previsão atual.'});
   // dia a dia
   const dias = Array.from(new Set(rows.map((r) => r.data))).sort();
@@ -122,6 +122,44 @@ TC.rsCliDoc = () => {
   const nome = rede ? 'Rede ' + F.cli.v : F.cli.txt;
   return {logoCli: TC.rsCliLogoImg(F.cli), titulo: 'Resumo do cliente', sub: periodo, rodape: 'W ARRAES - Gerência Transporte', blocos: B, arquivo: 'Resumo ' + nome.replace(/[\\/:*?"<>|]/g, ' ') + ' ' + (R.cDe === R.cAte ? R.cDe.split('-').reverse().join('-') : R.cDe.split('-').reverse().join('-') + ' a ' + R.cAte.split('-').reverse().join('-'))};
 };
+// Excel: o mesmo relatório, sem limite de linhas; cada tabela grande numa aba
+const celula = (v) => {
+  const t = String(v == null ? '' : v).trim();
+  if (/^-?\d+$/.test(t)) return {v: +t, s: 'n'};
+  if (/^\d{1,3}(\.\d{3})+$/.test(t)) return {v: +t.replace(/\./g, ''), s: 'n'};
+  const m = t.match(/^(-?\d+(?:,\d+)?)%$/); if (m) return {v: +m[1].replace(',', '.') / 100, s: 'p'};
+  return t;
+};
+TC.rsCliXlsx = () => {
+  TC.__rsCliFull = true; let doc; try { doc = TC.rsCliDoc(); } finally { TC.__rsCliFull = false; }
+  if (!doc) return null;
+  const nome = (doc.arquivo || 'Resumo do cliente').replace(/^Resumo /, '');
+  const resumo = [[{v: 'Resumo do cliente — ' + nome, s: 't'}], [doc.sub]], abas = [];
+  let sec = null;
+  doc.blocos.forEach((b) => {
+    if (b.t === 'h1') { sec = b.s; if (!/^(Rotas do dia|Resumo por loja|Dia a dia)/.test(sec)) { resumo.push([], [{v: sec, s: 'b'}]); } return; }
+    const propria = sec && /^(Rotas do dia|Resumo por loja|Dia a dia)/.test(sec);
+    if (b.t === 'table') {
+      const linhas = [b.cols.map((c) => ({v: c.h, s: 'h'}))].concat(b.rows.map((r) => r.map(celula)));
+      if (propria) abas.push({name: /^Rotas/.test(sec) ? 'Rotas do dia' : /^Resumo por loja/.test(sec) ? 'Por loja' : 'Dia a dia', rows: [[{v: sec, s: 't'}], [doc.sub]].concat([[]], linhas), widths: b.cols.map((c) => Math.max(10, Math.round(c.w * 1.1)))});
+      else resumo.push(...linhas);
+    } else if (b.t === 'p' || b.t === 'li' || b.t === 'box') (propria ? (abas.length ? abas[abas.length - 1].rows : resumo) : resumo).push([(b.t === 'li' ? '• ' : '') + b.s]);
+  });
+  return {blob: TC.xlsx([{name: 'Resumo', rows: resumo, widths: [16, 18, 14, 14, 14, 14, 18, 14]}].concat(abas)), arquivo: doc.arquivo};
+};
+document.querySelectorAll('#rs-cli-xls').forEach((b) => { b.onclick = async () => {
+  if (!F.cli) { msg('rs-cli-sel'); return; }
+  let x = null; try { x = TC.rsCliXlsx(); } catch (e) { msg('rs-cli-erro'); return; }
+  if (!x) { msg('rs-cli-vazio'); return; }
+  msg('rs-cli-ger'); b.disabled = true;
+  try {
+    const dl = W.claude && W.claude.use ? await W.claude.use('downloads').catch(() => null) : null;
+    if (!dl) throw new Error('sem downloads');
+    await dl.save({filename: x.arquivo + '.xlsx', data: x.blob});
+    msg('');
+  } catch (e) { msg(e && e.code === 'declined' ? '' : 'rs-cli-erro'); }
+  b.disabled = false;
+}; });
 document.querySelectorAll('#rs-cli-pdf').forEach((b) => { b.onclick = async () => {
   if (!F.cli) { msg('rs-cli-sel'); return; }
   const doc = TC.rsCliDoc(); if (!doc) { msg('rs-cli-vazio'); return; }
