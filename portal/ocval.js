@@ -65,11 +65,11 @@ let quem = '';
 (W.claude && W.claude.use ? W.claude.use('user').catch(() => null) : Promise.resolve(null))
   .then((u) => (u && u.me ? u.me() : null)).then((m) => { quem = (m && m.name) || ''; }).catch(() => {});
 
-// Contador na barra lateral + pisca em laranja enquanto houver falta sem validação
+// Contador na barra lateral (sem piscar)
 dash.draw('ocValN', (el) => {
   const p = TC.ocPend(); const n = p ? p.length : 0;
   el.textContent = n ? String(n) : '';
-  const b = el.closest('button'); if (b) b.classList.toggle('nx-blink', n > 0);
+  const b = el.closest('button'); if (b) b.classList.remove('nx-blink');   // a aba 1.6 não pisca; mostra só o contador
 });
 dash.draw('ocValTot', (el) => {
   const f = TC.ocLista(); if (!f) { el.textContent = '—'; return; }
